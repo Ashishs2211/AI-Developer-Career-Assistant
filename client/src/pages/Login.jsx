@@ -19,6 +19,35 @@ export default function Login() {
     });
   };
 
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    setLoading(true);
+
+    const response = await login(formData);
+
+    console.log(response.data);
+
+    localStorage.setItem("token", response.data.token);
+
+    alert("Login Successful");
+
+    navigate("/dashboard");
+
+  } catch (error) {
+
+    alert(
+      error.response?.data?.message || "Something went wrong"
+    );
+
+  } finally {
+
+    setLoading(false);
+
+  }
+};
+
   return (
     <div className="min-h-screen bg-slate-900 flex justify-center items-center">
 
@@ -32,7 +61,10 @@ export default function Login() {
           Welcome Back 👋
         </p>
 
-        <form className="mt-8 space-y-5">
+        <form
+          onSubmit={handleSubmit}
+          className="mt-8 space-y-5"
+        >
 
           <input
             type="email"
@@ -52,9 +84,16 @@ export default function Login() {
 
           <button
             type="submit"
+            disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg"
           >
-            Login
+
+            {
+                loading
+                ? "Logging in..."
+                : "Login"
+            }
+
           </button>
 
         </form>
