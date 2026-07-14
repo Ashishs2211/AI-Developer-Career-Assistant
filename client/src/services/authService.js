@@ -5,3 +5,6 @@ export const register = (userData) =>
 
 export const login = (userData) =>
   api.post("/auth/login", userData);
+
+export const getProfile = () => 
+  api.get("/auth/profile");
