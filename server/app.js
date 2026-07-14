@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-
 const authRoutes = require("./routes/authRoutes");
+const resumeRoutes = require("./routes/resumeRoutes");
 
 const app = express();
 
@@ -13,5 +13,6 @@ app.get("/" , (req , res) =>{
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/resume", resumeRoutes);
 
 module.exports = app;
