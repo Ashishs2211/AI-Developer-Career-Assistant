@@ -4,8 +4,8 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import StatCard from "../components/dashboard/StatCard";
 import QuickActions from "../components/dashboard/QuickActions";
 import ProfileCard from "../components/dashboard/ProfileCard";
-
 import { getProfile } from "../services/authService";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -22,6 +22,13 @@ export default function Dashboard() {
 
     fetchProfile();
   }, []);
+
+  <Link
+  to="/ai-tools"
+  className="bg-purple-600 text-white px-6 py-3 rounded-lg"
+>
+  Open AI Tools
+</Link>
 
   return (
     <DashboardLayout>
@@ -55,6 +62,18 @@ export default function Dashboard() {
           value="12"
           color="bg-orange-500"
         />
+        <Link
+  to="/github-analyzer"
+  className="bg-gray-900 text-white rounded-xl p-6 shadow-lg"
+>
+  <h2 className="text-2xl font-bold">
+    GitHub Analyzer
+  </h2>
+
+  <p className="mt-2">
+    Analyze any GitHub Repository using AI
+  </p>
+</Link>
 
       </div>
 
