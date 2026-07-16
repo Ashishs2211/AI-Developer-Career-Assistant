@@ -1,14 +1,37 @@
 import { useState } from "react";
+import axios from "axios";
 
 function CareerRoadmap() {
   const [goal, setGoal] = useState("");
   const [level, setLevel] = useState("Beginner");
+  const [roadmap, setRoadmap] = useState("");
+const [loading, setLoading] = useState(false);
 
-  const generateRoadmap = () => {
-    alert(
-      `Roadmap will be generated for ${goal || "Software Engineer"} (${level})`
+  const generateRoadmap = async () => {
+  if (!goal) {
+    alert("Please enter a career goal.");
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const response = await axios.post(
+      "http://localhost:5000/api/roadmap/generate",
+      {
+        goal,
+        level,
+      }
     );
-  };
+
+    setRoadmap(response.data.roadmap);
+
+  } catch (error) {
+    alert(error.response?.data?.message || "Something went wrong.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-100 p-10">
@@ -45,11 +68,19 @@ function CareerRoadmap() {
         </select>
 
         <button
-          onClick={generateRoadmap}
-          className="bg-green-600 text-white px-6 py-3 rounded-lg"
-        >
-          Generate Roadmap
-        </button>
+  onClick={generateRoadmap}
+  className="bg-green-600 text-white px-6 py-3 rounded-lg"
+  disabled={loading}
+>
+  {loading ? "Generating..." : "Generate Roadmap"}
+</button>
+        {roadmap && (
+  <div className="mt-8 bg-white shadow-lg rounded-xl p-6">
+    <pre className="whitespace-pre-wrap">
+      {roadmap}
+    </pre>
+  </div>
+)}
 
       </div>
     </div>
