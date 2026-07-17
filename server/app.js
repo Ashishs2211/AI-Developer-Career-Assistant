@@ -6,6 +6,7 @@ const projectRoutes = require("./routes/projectRoutes");
 const githubRoutes = require("./routes/githubRoutes");
 const interviewRoutes = require("./routes/interviewRoutes");
 const roadmapRoutes = require("./routes/roadmapRoutes");
+const historyRoutes = require("./routes/historyRoutes");
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use("/api/project", projectRoutes);
 app.use("/api/github", githubRoutes);
 app.use("/api/interview", interviewRoutes);
 app.use("/api/roadmap", roadmapRoutes);
+app.use("/api/history", historyRoutes);
 
 app.get("/" , (req , res) =>{
   res.send("AI Developer Career Assistant API Running...");

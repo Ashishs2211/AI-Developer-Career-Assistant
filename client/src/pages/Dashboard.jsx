@@ -4,11 +4,21 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import StatCard from "../components/dashboard/StatCard";
 import QuickActions from "../components/dashboard/QuickActions";
 import ProfileCard from "../components/dashboard/ProfileCard";
+import RecentActivity from "../components/dashboard/RecentActivity";
+
 import { getProfile } from "../services/authService";
-import { Link } from "react-router-dom";
+import { getDashboardStats } from "../services/historyService";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
+
+  const [stats, setStats] = useState({
+    resume: 0,
+    github: 0,
+    project: 0,
+    interview: 0,
+    roadmap: 0,
+  });
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -20,66 +30,85 @@ export default function Dashboard() {
       }
     };
 
-    fetchProfile();
-  }, []);
+    const fetchStats = async () => {
+      try {
+        const response = await getDashboardStats();
+        setStats(response.data.stats);
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
-  <Link
-  to="/ai-tools"
-  className="bg-purple-600 text-white px-6 py-3 rounded-lg"
->
-  Open AI Tools
-</Link>
+    fetchProfile();
+    fetchStats();
+  }, []);
 
   return (
     <DashboardLayout>
+      {/* Hero Banner */}
 
-      <h1 className="text-4xl font-bold mb-10">
-        Welcome {user?.name || "User"} 👋
-      </h1>
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white mb-10 shadow-xl">
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <h1 className="text-5xl font-bold">
+          Welcome Back, {user?.name || "User"} 👋
+        </h1>
+
+        <p className="mt-3 text-lg text-blue-100">
+          AI Developer Career Assistant Dashboard
+        </p>
+
+        <p className="mt-2 text-blue-200">
+          Analyze resumes, review GitHub repositories, practice mock interviews,
+          review projects, and generate career roadmaps using AI.
+        </p>
+
+      </div>
+
+      {/* Dashboard Stats */}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
 
         <StatCard
-          title="Resume Score"
-          value="92%"
+          title="Resume Analyses"
+          value={stats.resume}
           color="bg-blue-600"
         />
 
         <StatCard
-          title="GitHub Score"
-          value="85%"
+          title="GitHub Reviews"
+          value={stats.github}
           color="bg-green-600"
         />
 
         <StatCard
           title="Mock Interviews"
-          value="6"
+          value={stats.interview}
           color="bg-purple-600"
         />
 
         <StatCard
-          title="Projects Reviewed"
-          value="12"
+          title="Project Reviews"
+          value={stats.project}
           color="bg-orange-500"
         />
-        <Link
-  to="/github-analyzer"
-  className="bg-gray-900 text-white rounded-xl p-6 shadow-lg"
->
-  <h2 className="text-2xl font-bold">
-    GitHub Analyzer
-  </h2>
-
-  <p className="mt-2">
-    Analyze any GitHub Repository using AI
-  </p>
-</Link>
 
       </div>
 
+      {/* Quick Actions */}
+
       <QuickActions />
 
-      <ProfileCard user={user} />
+      {/* Profile */}
+
+      <div className="mt-10">
+        <ProfileCard user={user} />
+      </div>
+
+      {/* Recent Activity */}
+
+      <div className="mt-10">
+        <RecentActivity />
+      </div>
 
     </DashboardLayout>
   );

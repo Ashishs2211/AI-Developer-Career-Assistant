@@ -1,10 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
+const protect = require("../middleware/authMiddleware");
+
 const {
   startInterview,
 } = require("../controllers/interviewController");
 
-router.post("/start", startInterview);
+router.post(
+  "/start",
+  protect,
+  startInterview
+);
 
 module.exports = router;

@@ -1,8 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
-const { analyzeGithubRepo } = require("../controllers/githubController");
+const protect = require("../middleware/authMiddleware");
 
-router.post("/analyze", analyzeGithubRepo);
+const {
+  analyzeGithubRepo,
+} = require("../controllers/githubController");
+
+router.post(
+  "/analyze",
+  protect,
+  analyzeGithubRepo
+);
 
 module.exports = router;

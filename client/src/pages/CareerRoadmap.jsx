@@ -1,5 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
+import toast from "react-hot-toast";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 
 function CareerRoadmap() {
   const [goal, setGoal] = useState("");
@@ -9,7 +11,7 @@ const [loading, setLoading] = useState(false);
 
   const generateRoadmap = async () => {
   if (!goal) {
-    alert("Please enter a career goal.");
+    toast.error("Please enter a career goal.");
     return;
   }
 
@@ -26,8 +28,12 @@ const [loading, setLoading] = useState(false);
 
     setRoadmap(response.data.roadmap);
 
+toast.success("Roadmap generated successfully!");
+
   } catch (error) {
-    alert(error.response?.data?.message || "Something went wrong.");
+    toast.error(
+  error.response?.data?.message || "Something went wrong."
+);
   } finally {
     setLoading(false);
   }
@@ -68,12 +74,26 @@ const [loading, setLoading] = useState(false);
         </select>
 
         <button
-  onClick={generateRoadmap}
-  className="bg-green-600 text-white px-6 py-3 rounded-lg"
-  disabled={loading}
+      onClick={generateRoadmap}
+      disabled={loading}
+      className={`px-6 py-3 rounded-lg text-white transition ${
+        loading
+          ? "bg-gray-400 cursor-not-allowed"
+          : "bg-green-600 hover:bg-green-700"
+  }`}
 >
-  {loading ? "Generating..." : "Generate Roadmap"}
+  {loading ? "Generating Roadmap..." : "Generate Roadmap"}
 </button>
+{loading ? (
+  <LoadingSpinner text="Generating AI Roadmap..." />
+) : (
+  <button
+    onClick={generateRoadmap}
+    className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
+  >
+    Generate Roadmap
+  </button>
+)}
         {roadmap && (
   <div className="mt-8 bg-white shadow-lg rounded-xl p-6">
     <pre className="whitespace-pre-wrap">

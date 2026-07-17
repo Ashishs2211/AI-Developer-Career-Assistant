@@ -10,6 +10,7 @@ import ProjectReviewer from "./pages/ProjectReviewer";
 import MockInterview from "./pages/MockInterview";
 import CareerRoadmap from "./pages/CareerRoadmap";
 import GithubAnalyzer from "./pages/GithubAnalyzer";
+import History from "./pages/History";
 
 function App() {
   return (
@@ -79,7 +80,14 @@ function App() {
     </ProtectedRoute>
   }
 />
-
+    <Route
+  path="/history"
+  element={
+    <ProtectedRoute>
+      <History />
+    </ProtectedRoute>
+  }
+/>
     </Routes>
   );
 }

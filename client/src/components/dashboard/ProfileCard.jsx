@@ -1,31 +1,56 @@
+import { FaEnvelope, FaGithub, FaLinkedin } from "react-icons/fa";
+import { motion } from "framer-motion";
+
 export default function ProfileCard({ user }) {
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 mt-10">
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      className="bg-white rounded-2xl shadow-lg p-8 mt-10"
+    >
+      <div className="flex items-center gap-6">
 
-      <h2 className="text-2xl font-bold mb-4">
-        User Profile
-      </h2>
+        <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-4xl text-white font-bold">
+          {user?.name?.charAt(0).toUpperCase() || "U"}
+        </div>
 
-      <div className="space-y-3">
+        <div>
 
-        <p>
-          <strong>Name:</strong> {user?.name}
-        </p>
+          <h2 className="text-3xl font-bold">
+            {user?.name}
+          </h2>
 
-        <p>
-          <strong>Email:</strong> {user?.email}
-        </p>
+          <p className="text-gray-500 mt-1">
+            AI Developer Career Assistant User
+          </p>
 
-        <p>
-          <strong>GitHub:</strong> {user?.githubUsername}
-        </p>
-
-        <p>
-          <strong>LinkedIn:</strong> {user?.linkedin}
-        </p>
+        </div>
 
       </div>
 
-    </div>
+      <hr className="my-6" />
+
+      <div className="space-y-4">
+
+        <div className="flex items-center gap-3">
+          <FaEnvelope className="text-blue-600" />
+          <span>{user?.email}</span>
+        </div>
+
+        {user?.githubUsername && (
+          <div className="flex items-center gap-3">
+            <FaGithub />
+            <span>{user.githubUsername}</span>
+          </div>
+        )}
+
+        {user?.linkedin && (
+          <div className="flex items-center gap-3">
+            <FaLinkedin className="text-blue-700" />
+            <span>{user.linkedin}</span>
+          </div>
+        )}
+
+      </div>
+    </motion.div>
   );
 }

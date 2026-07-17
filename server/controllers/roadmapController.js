@@ -2,6 +2,8 @@ const {
   generateCareerRoadmap,
 } = require("../services/roadmapService");
 
+const History = require("../models/History");
+
 const generateRoadmap = async (req, res) => {
   try {
     const { goal, level } = req.body;
@@ -13,7 +15,16 @@ const generateRoadmap = async (req, res) => {
       });
     }
 
+    // Generate AI Roadmap
     const roadmap = await generateCareerRoadmap(goal, level);
+
+    // Save History
+    await History.create({
+      user: req.user.userId,
+      type: "roadmap",
+      title: `${goal} (${level})`,
+      result: roadmap,
+    });
 
     res.status(200).json({
       success: true,

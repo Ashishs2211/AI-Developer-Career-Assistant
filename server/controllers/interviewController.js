@@ -2,6 +2,8 @@ const {
   generateInterview,
 } = require("../services/interviewService");
 
+const History = require("../models/History");
+
 const startInterview = async (req, res) => {
   try {
     const { role, experience } = req.body;
@@ -13,7 +15,16 @@ const startInterview = async (req, res) => {
       });
     }
 
+    // Generate AI Interview
     const interview = await generateInterview(role, experience);
+
+    // Save History
+    await History.create({
+      user: req.user.userId,
+      type: "interview",
+      title: `${role} (${experience})`,
+      result: interview,
+    });
 
     res.status(200).json({
       success: true,
