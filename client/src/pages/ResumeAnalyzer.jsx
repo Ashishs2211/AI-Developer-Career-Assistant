@@ -1,6 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
+import toast from "react-hot-toast";
+import LoadingCard from "../components/common/LoadingCard";
 
 function ResumeAnalyzer() {
   const [resume, setResume] = useState(null);
@@ -9,8 +11,9 @@ function ResumeAnalyzer() {
 
   const handleUpload = async () => {
     if (!resume) {
-      alert("Please select a resume.");
-      return;
+    toast.error("Please upload a resume.");
+    return;
+}
     }
 
     const formData = new FormData();
@@ -30,9 +33,10 @@ function ResumeAnalyzer() {
       );
 
       setAnalysis(response.data.analysis);
+      toast.success("Resume analyzed successfully!");
 
     } catch (error) {
-      alert(error.response?.data?.message || "Upload Failed");
+      toast.error(error.response?.data?.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
@@ -61,10 +65,10 @@ function ResumeAnalyzer() {
           Analyze Resume
         </button>
 
-        {loading && (
-          <p className="mt-6 text-blue-600 font-semibold">
-            Analyzing Resume...
-          </p>
+                {loading && (
+          <LoadingCard
+            text="Analyzing Resume..."
+          />
         )}
 
         {analysis && (

@@ -8,6 +8,8 @@ import RecentActivity from "../components/dashboard/RecentActivity";
 
 import { getProfile } from "../services/authService";
 import { getDashboardStats } from "../services/historyService";
+import AnalyticsChart from "../components/dashboard/AnalyticsChart";
+import ThemeToggle from "../components/common/ThemeToggle";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -47,17 +49,17 @@ export default function Dashboard() {
     <DashboardLayout>
       {/* Hero Banner */}
 
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white mb-10 shadow-xl">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 md:p-8 text-white mb-10 shadow-xl">
 
-        <h1 className="text-5xl font-bold">
+        <h1 className="text-3xl md:text-5xl font-bold">
           Welcome Back, {user?.name || "User"} 👋
         </h1>
 
-        <p className="mt-3 text-lg text-blue-100">
+        <p className="mt-3 text-base md:text-lg text-blue-100">
           AI Developer Career Assistant Dashboard
         </p>
 
-        <p className="mt-2 text-blue-200">
+        <p className="mt-2 text-sm md:text-base text-blue-200">
           Analyze resumes, review GitHub repositories, practice mock interviews,
           review projects, and generate career roadmaps using AI.
         </p>
@@ -66,7 +68,7 @@ export default function Dashboard() {
 
       {/* Dashboard Stats */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
 
         <StatCard
           title="Resume Analyses"
@@ -94,21 +96,29 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Quick Actions */}
+          {/* Quick Actions */}
 
-      <QuickActions />
+    <QuickActions />
 
-      {/* Profile */}
+    {/* Analytics Chart */}
 
-      <div className="mt-10">
-        <ProfileCard user={user} />
-      </div>
+    <AnalyticsChart stats={stats} />
 
-      {/* Recent Activity */}
+    {/* Profile */}
 
-      <div className="mt-10">
-        <RecentActivity />
-      </div>
+    <div className="mt-10">
+      <ProfileCard user={user} />
+    </div>
+
+    {/* Recent Activity */}
+
+    <div className="mt-10">
+      <RecentActivity />
+    </div>
+
+    <div className="flex justify-end mb-6">
+  <ThemeToggle />
+</div>
 
     </DashboardLayout>
   );
