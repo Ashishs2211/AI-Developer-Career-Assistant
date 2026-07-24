@@ -1,5 +1,7 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../services/api";
+import toast from "react-hot-toast";
+import LoadingCard from "../components/common/LoadingCard";
 
 function GithubAnalyzer() {
   const [repoUrl, setRepoUrl] = useState("");
@@ -8,23 +10,25 @@ function GithubAnalyzer() {
 
   const analyzeRepo = async () => {
     if (!repoUrl) {
-      alert("Please enter a GitHub Repository URL.");
+      toast.error("Please enter a GitHub Repository URL.");
       return;
     }
 
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        "http://localhost:5000/api/github/analyze",
-        {
-          repoUrl,
-        }
-      );
+      const res = await api.post("/github/analyze", {
+        repoUrl,
+      });
 
       setResult(res.data);
+
+      toast.success("Repository analyzed successfully!");
+
     } catch (err) {
-      alert(err.response?.data?.message || "Analysis Failed");
+      toast.error(
+        err.response?.data?.message || "Analysis Failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -49,8 +53,12 @@ function GithubAnalyzer() {
         onClick={analyzeRepo}
         className="ml-4 bg-green-600 text-white px-6 py-2 rounded-lg"
       >
-        {loading ? "Analyzing..." : "Analyze"}
+        Analyze
       </button>
+
+      {loading && (
+        <LoadingCard text="Analyzing Repository..." />
+      )}
 
       {result && (
         <div className="mt-10 bg-white rounded-xl shadow-lg p-8">
@@ -59,10 +67,21 @@ function GithubAnalyzer() {
             Repository Information
           </h2>
 
-          <p><strong>Name:</strong> {result.repository.name}</p>
-          <p><strong>Owner:</strong> {result.repository.owner}</p>
-          <p><strong>Language:</strong> {result.repository.language}</p>
-          <p><strong>Stars:</strong> ⭐ {result.repository.stars}</p>
+          <p>
+            <strong>Name:</strong> {result.repository.name}
+          </p>
+
+          <p>
+            <strong>Owner:</strong> {result.repository.owner}
+          </p>
+
+          <p>
+            <strong>Language:</strong> {result.repository.language}
+          </p>
+
+          <p>
+            <strong>Stars:</strong> ⭐ {result.repository.stars}
+          </p>
 
           <hr className="my-6" />
 

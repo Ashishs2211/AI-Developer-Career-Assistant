@@ -1,5 +1,7 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../services/api";
+import toast from "react-hot-toast";
+import LoadingCard from "../components/common/LoadingCard";
 
 function ProjectReviewer() {
   const [file, setFile] = useState(null);
@@ -8,7 +10,7 @@ function ProjectReviewer() {
 
   const handleUpload = async () => {
     if (!file) {
-      alert("Please select a ZIP file.");
+      toast.error("Please select a ZIP file.");
       return;
     }
 
@@ -18,8 +20,8 @@ function ProjectReviewer() {
     try {
       setLoading(true);
 
-      const res = await axios.post(
-        "http://localhost:5000/api/project/upload",
+      const res = await api.post(
+        "/project/upload",
         formData,
         {
           headers: {
@@ -30,8 +32,12 @@ function ProjectReviewer() {
 
       setAnalysis(res.data.analysis);
 
+      toast.success("Project reviewed successfully!");
+
     } catch (err) {
-      alert(err.response?.data?.message || "Upload Failed");
+      toast.error(
+        err.response?.data?.message || "Upload Failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -54,11 +60,16 @@ function ProjectReviewer() {
         onClick={handleUpload}
         className="ml-4 bg-blue-600 text-white px-6 py-2 rounded-lg"
       >
-        {loading ? "Analyzing..." : "Upload Project"}
+        Upload Project
       </button>
+
+      {loading && (
+        <LoadingCard text="Reviewing Project..." />
+      )}
 
       {analysis && (
         <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
+
           <h2 className="text-2xl font-bold mb-4">
             AI Review
           </h2>
@@ -66,6 +77,7 @@ function ProjectReviewer() {
           <pre className="whitespace-pre-wrap">
             {analysis}
           </pre>
+
         </div>
       )}
 

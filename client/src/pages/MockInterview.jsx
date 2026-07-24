@@ -1,5 +1,7 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../services/api";
+import toast from "react-hot-toast";
+import LoadingCard from "../components/common/LoadingCard";
 
 function MockInterview() {
   const [role, setRole] = useState("");
@@ -9,25 +11,26 @@ function MockInterview() {
 
   const startInterview = async () => {
     if (!role) {
-      alert("Please enter a job role.");
+      toast.error("Please enter a job role.");
       return;
     }
 
     try {
       setLoading(true);
 
-      const response = await axios.post(
-        "http://localhost:5000/api/interview/start",
-        {
-          role,
-          experience,
-        }
-      );
+      const response = await api.post("/interview/start", {
+        role,
+        experience,
+      });
 
       setInterview(response.data.interview);
 
+      toast.success("Interview generated successfully!");
+
     } catch (error) {
-      alert(error.response?.data?.message || "Something went wrong.");
+      toast.error(
+        error.response?.data?.message || "Something went wrong."
+      );
     } finally {
       setLoading(false);
     }
@@ -64,8 +67,12 @@ function MockInterview() {
           onClick={startInterview}
           className="bg-blue-600 text-white px-6 py-3 rounded-lg"
         >
-          {loading ? "Generating..." : "Start Interview"}
+          Start Interview
         </button>
+
+        {loading && (
+          <LoadingCard text="Generating Interview..." />
+        )}
 
         {interview && (
           <div className="mt-8 bg-gray-50 rounded-lg p-6 border">

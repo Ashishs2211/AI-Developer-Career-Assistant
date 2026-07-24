@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 import ReactMarkdown from "react-markdown";
 import toast from "react-hot-toast";
 import LoadingCard from "../components/common/LoadingCard";
@@ -11,9 +11,8 @@ function ResumeAnalyzer() {
 
   const handleUpload = async () => {
     if (!resume) {
-    toast.error("Please upload a resume.");
-    return;
-}
+      toast.error("Please upload a resume.");
+      return;
     }
 
     const formData = new FormData();
@@ -22,21 +21,23 @@ function ResumeAnalyzer() {
     try {
       setLoading(true);
 
-      const response = await axios.post(
-        "http://localhost:5000/api/resume/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+          const response = await api.post(
+      "/resume/upload",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
 
       setAnalysis(response.data.analysis);
       toast.success("Resume analyzed successfully!");
 
     } catch (error) {
-      toast.error(error.response?.data?.message || "Something went wrong.");
+      toast.error(
+        error.response?.data?.message || "Something went wrong."
+      );
     } finally {
       setLoading(false);
     }
@@ -44,9 +45,7 @@ function ResumeAnalyzer() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center p-8">
-
       <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-3xl">
-
         <h1 className="text-3xl font-bold text-center mb-8">
           AI Resume Analyzer
         </h1>
@@ -65,22 +64,18 @@ function ResumeAnalyzer() {
           Analyze Resume
         </button>
 
-                {loading && (
-          <LoadingCard
-            text="Analyzing Resume..."
-          />
+        {loading && (
+          <LoadingCard text="Analyzing Resume..." />
         )}
 
         {analysis && (
           <div className="mt-8 bg-gray-50 p-6 rounded-lg border">
             <div className="prose max-w-none">
-  <ReactMarkdown>{analysis}</ReactMarkdown>
-</div>
+              <ReactMarkdown>{analysis}</ReactMarkdown>
+            </div>
           </div>
         )}
-
       </div>
-
     </div>
   );
 }

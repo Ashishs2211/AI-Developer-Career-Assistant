@@ -50,31 +50,30 @@ export default function History() {
       setHistory((prev) =>
         prev.filter((item) => item._id !== id)
       );
-
     } catch (error) {
       console.log(error);
       toast.error("Unable to delete history.");
     }
   };
 
-  // Filter History
+  // Search + Filter
   const filteredHistory = history.filter((item) => {
+  const searchText = search.toLowerCase().trim();
 
-    const matchesSearch = item.title
-      .toLowerCase()
-      .includes(search.toLowerCase());
+  const matchesSearch =
+    searchText === "" ||
+    item.type?.toLowerCase().includes(searchText) ||
+    item.title?.toLowerCase().includes(searchText);
 
-    const matchesFilter =
-      filter === "all" || item.type === filter;
+  const matchesFilter =
+    filter === "all" || item.type === filter;
 
-    return matchesSearch && matchesFilter;
-  });
+  return matchesSearch && matchesFilter;
+});
 
   // Icons
   const getIcon = (type) => {
-
     switch (type) {
-
       case "resume":
         return (
           <FaFileAlt className="text-blue-600 text-3xl" />
@@ -114,8 +113,6 @@ export default function History() {
   return (
     <div className="min-h-screen bg-gray-100 p-10">
 
-      {/* Heading */}
-
       <h1 className="text-4xl font-bold mb-8">
         📚 My AI History
       </h1>
@@ -128,17 +125,13 @@ export default function History() {
           type="text"
           placeholder="🔍 Search history..."
           value={search}
-          onChange={(e) =>
-            setSearch(e.target.value)
-          }
+          onChange={(e) => setSearch(e.target.value)}
           className="flex-1 border rounded-lg px-4 py-3"
         />
 
         <select
           value={filter}
-          onChange={(e) =>
-            setFilter(e.target.value)
-          }
+          onChange={(e) => setFilter(e.target.value)}
           className="border rounded-lg px-4 py-3"
         >
           <option value="all">All</option>
@@ -151,7 +144,7 @@ export default function History() {
 
       </div>
 
-      {/* History List */}
+      {/* History */}
 
       <div className="space-y-6">
 
@@ -191,7 +184,7 @@ export default function History() {
                     </h2>
 
                     <p className="mt-2">
-                      {item.title}
+                      {item.title || "AI Analysis"}
                     </p>
 
                     <p className="text-gray-500 mt-2">
@@ -217,38 +210,45 @@ export default function History() {
 
               <details className="mt-6">
 
-        <summary className="cursor-pointer text-blue-600 font-semibold hover:text-blue-800">
-          View AI Result
-        </summary>
+                <summary className="cursor-pointer text-blue-600 font-semibold hover:text-blue-800">
+                  View AI Result
+                </summary>
 
-        <pre className="mt-4 whitespace-pre-wrap bg-gray-100 rounded-lg p-4 overflow-x-auto">
-          {item.result}
-        </pre>
+                <pre className="mt-4 whitespace-pre-wrap bg-gray-100 rounded-lg p-4 overflow-x-auto">
+                  {item.result}
+                </pre>
 
-        {/* Action Buttons */}
+                <div className="mt-5 flex gap-3 flex-wrap">
 
-        <div className="mt-5 flex gap-3">
+                  <button
+                    onClick={() =>
+                      exportPDF(
+                        item.title || "AI Analysis",
+                        item.result
+                      )
+                    }
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition"
+                  >
+                    📄 Export PDF
+                  </button>
 
-          <button
-            onClick={() => exportPDF(item.title, item.result)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition"
-          >
-            📄 Export PDF
-          </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        item.result
+                      );
+                      toast.success(
+                        "Copied to clipboard!"
+                      );
+                    }}
+                    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg transition"
+                  >
+                    📋 Copy Result
+                  </button>
 
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(item.result);
-              toast.success("Copied to clipboard!");
-            }}
-            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg transition"
-          >
-            📋 Copy Result
-          </button>
+                </div>
 
-        </div>
-
-      </details>
+              </details>
 
             </div>
 
