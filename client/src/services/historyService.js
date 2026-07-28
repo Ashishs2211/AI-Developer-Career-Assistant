@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "http://localhost:5000/api/history";
+const API = "https://career-assistant-api-4y95.onrender.com";
 
 const getToken = () => localStorage.getItem("token");
 
