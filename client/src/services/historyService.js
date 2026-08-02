@@ -1,23 +1,13 @@
-import axios from "axios";
-
-const API = "https://career-assistant-api-4y95.onrender.com";
-
-const getToken = () => localStorage.getItem("token");
-
-const config = () => ({
-  headers: {
-    Authorization: `Bearer ${getToken()}`
-  }
-});
+import api from "./api";
 
 export const getHistory = () => {
-  return axios.get(API, config());
+  return api.get("/history");
 };
 
 export const deleteHistory = (id) => {
-  return axios.delete(`${API}/${id}`, config());
+  return api.delete(`/history/${id}`);
 };
 
 export const getDashboardStats = () => {
-  return axios.get(`${API}/stats`, config());
+  return api.get("/history/stats");
 };

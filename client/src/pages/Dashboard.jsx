@@ -5,10 +5,11 @@ import StatCard from "../components/dashboard/StatCard";
 import QuickActions from "../components/dashboard/QuickActions";
 import ProfileCard from "../components/dashboard/ProfileCard";
 import RecentActivity from "../components/dashboard/RecentActivity";
+import AnalyticsChart from "../components/dashboard/AnalyticsChart";
 
 import { getProfile } from "../services/authService";
 import { getDashboardStats } from "../services/historyService";
-import AnalyticsChart from "../components/dashboard/AnalyticsChart";
+
 import ThemeToggle from "../components/common/ThemeToggle";
 
 export default function Dashboard() {
@@ -47,31 +48,39 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
+
+      {/* Theme Toggle */}
+
+      <div className="flex justify-end mb-6">
+        <ThemeToggle />
+      </div>
+
       {/* Hero Banner */}
 
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 md:p-8 text-white mb-10 shadow-xl">
+      <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 rounded-3xl p-8 md:p-10 text-white shadow-2xl mb-10">
 
-        <h1 className="text-3xl md:text-5xl font-bold">
-          Welcome Back, {user?.name || "User"} 👋
+        <h1 className="text-4xl md:text-5xl font-bold">
+          Welcome Back, {user?.name || "Developer"} 🚀
         </h1>
 
-        <p className="mt-3 text-base md:text-lg text-blue-100">
-          AI Developer Career Assistant Dashboard
+        <p className="mt-4 text-xl text-blue-100 font-medium">
+          Your Personal AI Career Growth Dashboard
         </p>
 
-        <p className="mt-2 text-sm md:text-base text-blue-200">
-          Analyze resumes, review GitHub repositories, practice mock interviews,
-          review projects, and generate career roadmaps using AI.
+        <p className="mt-4 text-blue-100 leading-7 max-w-4xl">
+          Track your interview preparation, analyze resumes, review GitHub
+          repositories, evaluate projects, practice mock interviews, and
+          generate AI-powered career roadmaps — all from one dashboard.
         </p>
 
       </div>
 
       {/* Dashboard Stats */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-10">
 
         <StatCard
-          title="Resume Analyses"
+          title="Resume Reviews"
           value={stats.resume}
           color="bg-blue-600"
         />
@@ -94,31 +103,59 @@ export default function Dashboard() {
           color="bg-orange-500"
         />
 
+        <StatCard
+          title="Career Roadmaps"
+          value={stats.roadmap}
+          color="bg-pink-600"
+        />
+
       </div>
 
-          {/* Quick Actions */}
+      {/* Analytics */}
 
-    <QuickActions />
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 mb-10">
 
-    {/* Analytics Chart */}
+        <h2 className="text-2xl font-bold mb-6">
+          📊 AI Usage Analytics
+        </h2>
 
-    <AnalyticsChart stats={stats} />
+        <AnalyticsChart stats={stats} />
 
-    {/* Profile */}
+      </div>
 
-    <div className="mt-10">
-      <ProfileCard user={user} />
-    </div>
+      {/* Quick Actions */}
 
-    {/* Recent Activity */}
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6 mb-10">
 
-    <div className="mt-10">
-      <RecentActivity />
-    </div>
+        <h2 className="text-2xl font-bold mb-6">
+          ⚡ Quick Actions
+        </h2>
 
-    <div className="flex justify-end mb-6">
-  <ThemeToggle />
-</div>
+        <QuickActions />
+
+      </div>
+
+      {/* Bottom Section */}
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
+          <h2 className="text-2xl font-bold mb-6">
+            👤 My Profile
+          </h2>
+
+          <ProfileCard user={user} />
+        </div>
+
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-lg p-6">
+          <h2 className="text-2xl font-bold mb-6">
+            📜 Recent Activity
+          </h2>
+
+          <RecentActivity />
+        </div>
+
+      </div>
 
     </DashboardLayout>
   );

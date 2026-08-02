@@ -6,24 +6,25 @@ export default function RecentActivity() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const response = await getHistory();
+useEffect(() => {
+  const fetchHistory = async () => {
+    try {
+      const response = await getHistory();
 
-        // Show latest 5 activities
-        setHistory(response.data.history.slice(0, 5));
+      const historyData = response.data?.history || [];
 
-      } catch (error) {
-        console.log(error);
+      setHistory(historyData.slice(0, 5));
 
-      } finally {
-        setLoading(false);
-      }
-    };
+    } catch (error) {
+      console.log(error);
+      setHistory([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchHistory();
-  }, []);
+  fetchHistory();
+}, []);
 
   if (loading) {
     return <LoadingSpinner text="Loading Recent Activity..." />;

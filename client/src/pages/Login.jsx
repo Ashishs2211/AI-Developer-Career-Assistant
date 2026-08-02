@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { login } from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const navigate = useNavigate();
+
+  // AuthContext login function
+  const { login: authLogin } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -20,33 +24,30 @@ export default function Login() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const response = await login(formData);
+      const response = await login(formData);
 
-    console.log(response.data);
+      console.log(response.data);
 
-    localStorage.setItem("token", response.data.token);
+      // Save token in AuthContext + LocalStorage
+      authLogin(response.data.token);
 
-    alert("Login Successful");
+      alert("Login Successful");
 
-    navigate("/dashboard");
+      navigate("/dashboard");
 
-  } catch (error) {
-
-    alert(
-      error.response?.data?.message || "Something went wrong"
-    );
-
-  } finally {
-
-    setLoading(false);
-
-  }
-};
+    } catch (error) {
+      alert(
+        error.response?.data?.message || "Something went wrong"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-900 flex justify-center items-center">
@@ -70,30 +71,28 @@ export default function Login() {
             type="email"
             name="email"
             placeholder="Email"
+            value={formData.email}
             onChange={handleChange}
-            className="w-full p-3 rounded-lg bg-slate-700 text-white outline-none"
+            required
+            className="w-full p-3 rounded-lg bg-slate-700 text-white outline-none border border-slate-600 focus:border-blue-500"
           />
 
           <input
             type="password"
             name="password"
             placeholder="Password"
+            value={formData.password}
             onChange={handleChange}
-            className="w-full p-3 rounded-lg bg-slate-700 text-white outline-none"
+            required
+            className="w-full p-3 rounded-lg bg-slate-700 text-white outline-none border border-slate-600 focus:border-blue-500"
           />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg"
+            className="w-full bg-blue-600 hover:bg-blue-700 transition text-white py-3 rounded-lg disabled:opacity-50"
           >
-
-            {
-                loading
-                ? "Logging in..."
-                : "Login"
-            }
-
+            {loading ? "Logging in..." : "Login"}
           </button>
 
         </form>
