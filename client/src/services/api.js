@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://career-assistant-api-4y95.onrender.com/api",
+  baseURL: "https://ai-developer-career-assistant-backend.onrender.com/api",
 });
 
 // Automatically attach JWT token to every request
