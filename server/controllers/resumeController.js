@@ -40,13 +40,15 @@ const uploadResume = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+  console.error("========== Resume Upload Error ==========");
+  console.error(error);
+  console.error(error.stack);
 
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
+  res.status(500).json({
+    success: false,
+    message: error.message,
+  });
+}
 };
 
 module.exports = {

@@ -1,4 +1,5 @@
 const OpenAI = require("openai");
+const axios = require("axios");
 
 const client = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
