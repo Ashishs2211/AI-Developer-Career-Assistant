@@ -2,16 +2,23 @@ import { useState } from "react";
 import api from "../services/api";
 import ReactMarkdown from "react-markdown";
 import toast from "react-hot-toast";
-import LoadingCard from "../components/common/LoadingCard";
 
-function ResumeAnalyzer() {
+import LoadingCard from "../components/common/LoadingCard";
+import FileUpload from "../components/common/FileUpload";
+import FeatureCard from "../components/common/FeatureCard";
+import PageHero from "../components/common/PageHero";
+import ReportSection from "../components/common/ReportSection";
+import ActionButtons from "../components/common/ActionButtons";
+import EmptyState from "../components/common/EmptyState";
+
+export default function ResumeAnalyzer() {
   const [resume, setResume] = useState(null);
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleUpload = async () => {
     if (!resume) {
-      toast.error("Please upload a resume.");
+      toast.error("Please upload a PDF Resume.");
       return;
     }
 
@@ -21,63 +28,161 @@ function ResumeAnalyzer() {
     try {
       setLoading(true);
 
-          const response = await api.post(
-      "/resume/upload",
-      formData,
-      {
+      const response = await api.post("/resume/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      }
-    );
+      });
 
       setAnalysis(response.data.analysis);
-      toast.success("Resume analyzed successfully!");
 
+      toast.success("Resume analyzed successfully 🎉");
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Something went wrong."
+        error.response?.data?.message || "Resume Analysis Failed"
       );
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-100 flex justify-center items-center p-8">
-      <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-3xl">
-        <h1 className="text-3xl font-bold text-center mb-8">
-          AI Resume Analyzer
-        </h1>
+  const handleCopy = () => {
+    navigator.clipboard.writeText(analysis);
+    toast.success("Report copied successfully");
+  };
 
-        <input
-          type="file"
-          accept=".pdf"
-          onChange={(e) => setResume(e.target.files[0])}
-          className="mb-4 w-full"
+  const handleReset = () => {
+    setAnalysis("");
+    setResume(null);
+  };
+
+  const handleDownload = () => {
+    toast("📄 PDF Download feature coming in Day 17");
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-10 px-5">
+
+      <div className="max-w-6xl mx-auto">
+
+        {/* Hero */}
+
+        <PageHero
+          badge="AI Powered ATS Resume Analyzer"
+          title="📄 AI Resume Analyzer"
+          description="Upload your resume and receive an AI-powered ATS score, missing keywords, recruiter suggestions and improvement tips."
+          features={[
+            "⭐ ATS Score",
+            "🔍 Missing Keywords",
+            "🚀 Suggestions",
+            "💼 Recruiter Feedback",
+          ]}
         />
 
-        <button
-          onClick={handleUpload}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg"
-        >
-          Analyze Resume
-        </button>
+        {/* Upload Card */}
+
+        <div className="mt-10 bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl shadow-xl p-8">
+
+          <h2 className="text-3xl text-white font-bold mb-2">
+            Upload Resume
+          </h2>
+
+          <p className="text-slate-400 mb-8">
+            PDF Format • Maximum Size 5 MB
+          </p>
+
+          <FileUpload
+            file={resume}
+            onChange={(e) => setResume(e.target.files[0])}
+          />
+
+          {/* Features */}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mt-10">
+
+            <FeatureCard
+              icon="📊"
+              title="ATS Score"
+              description="Know how ATS systems evaluate your resume."
+            />
+
+            <FeatureCard
+              icon="🔍"
+              title="Keywords"
+              description="Find missing recruiter keywords."
+            />
+
+            <FeatureCard
+              icon="💡"
+              title="Suggestions"
+              description="AI recommendations to improve your resume."
+            />
+
+            <FeatureCard
+              icon="🚀"
+              title="Career Growth"
+              description="Increase your chances of getting shortlisted."
+            />
+
+          </div>
+
+          {/* Button */}
+
+          <button
+            onClick={handleUpload}
+            disabled={loading}
+            className="mt-10 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:scale-[1.02] transition-all duration-300 py-4 rounded-2xl text-xl font-bold text-white shadow-xl disabled:opacity-60"
+          >
+            {loading
+              ? "🤖 AI is analyzing your resume..."
+              : "✨ Analyze Resume with AI"}
+          </button>
+
+        </div>
+
+        {/* Loading */}
 
         {loading && (
-          <LoadingCard text="Analyzing Resume..." />
-        )}
-
-        {analysis && (
-          <div className="mt-8 bg-gray-50 p-6 rounded-lg border">
-            <div className="prose max-w-none">
-              <ReactMarkdown>{analysis}</ReactMarkdown>
-            </div>
+          <div className="mt-10">
+            <LoadingCard text="AI is analyzing your resume..." />
           </div>
         )}
+
+        {/* Empty State */}
+
+        {!loading && !analysis && (
+          <EmptyState
+            icon="📄"
+            title="No Resume Analysis Yet"
+            description="Upload your resume and let AI analyze it."
+          />
+        )}
+
+        {/* Report */}
+
+        {analysis && (
+          <div className="mt-10">
+
+            <ReportSection
+              icon="📊"
+              title="AI Resume Report"
+            >
+              <ReactMarkdown className="prose prose-lg dark:prose-invert max-w-none">
+                {analysis}
+              </ReactMarkdown>
+            </ReportSection>
+
+            <ActionButtons
+              onDownload={handleDownload}
+              onCopy={handleCopy}
+              onReset={handleReset}
+            />
+
+          </div>
+        )}
+
       </div>
+
     </div>
   );
 }
-
-export default ResumeAnalyzer;

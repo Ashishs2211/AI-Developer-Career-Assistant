@@ -1,9 +1,16 @@
 import { useState } from "react";
 import api from "../services/api";
 import toast from "react-hot-toast";
-import LoadingCard from "../components/common/LoadingCard";
+import ReactMarkdown from "react-markdown";
 
-function GithubAnalyzer() {
+import LoadingCard from "../components/common/LoadingCard";
+import FeatureCard from "../components/common/FeatureCard";
+import PageHero from "../components/common/PageHero";
+import ReportSection from "../components/common/ReportSection";
+import ActionButtons from "../components/common/ActionButtons";
+import EmptyState from "../components/common/EmptyState";
+
+export default function GithubAnalyzer() {
   const [repoUrl, setRepoUrl] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -23,8 +30,7 @@ function GithubAnalyzer() {
 
       setResult(res.data);
 
-      toast.success("Repository analyzed successfully!");
-
+      toast.success("Repository analyzed successfully 🚀");
     } catch (err) {
       toast.error(
         err.response?.data?.message || "Analysis Failed"
@@ -34,70 +40,153 @@ function GithubAnalyzer() {
     }
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(result.analysis);
+    toast.success("Report copied successfully");
+  };
+
+  const handleReset = () => {
+    setResult(null);
+    setRepoUrl("");
+  };
+
+  const handleDownload = () => {
+    toast("📄 PDF Download will be added in Day 17");
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 p-10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-10 px-5">
 
-      <h1 className="text-4xl font-bold mb-8">
-        GitHub Repository Analyzer
-      </h1>
+      <div className="max-w-6xl mx-auto">
 
-      <input
-        type="text"
-        placeholder="Paste GitHub Repository URL"
-        value={repoUrl}
-        onChange={(e) => setRepoUrl(e.target.value)}
-        className="border rounded-lg px-4 py-2 w-2/3"
-      />
+        <PageHero
+          badge="AI GitHub Repository Analyzer"
+          title="🐙 GitHub Analyzer"
+          description="Analyze any public GitHub repository using Artificial Intelligence and receive architecture review, security suggestions, scalability feedback and interview questions."
+          features={[
+            "⭐ Repository Score",
+            "🔍 Code Review",
+            "🛡 Security",
+            "🚀 Scalability",
+          ]}
+        />
 
-      <button
-        onClick={analyzeRepo}
-        className="ml-4 bg-green-600 text-white px-6 py-2 rounded-lg"
-      >
-        Analyze
-      </button>
+        <div className="mt-10 bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl shadow-xl p-8">
 
-      {loading && (
-        <LoadingCard text="Analyzing Repository..." />
-      )}
-
-      {result && (
-        <div className="mt-10 bg-white rounded-xl shadow-lg p-8">
-
-          <h2 className="text-3xl font-bold mb-6">
-            Repository Information
+          <h2 className="text-3xl font-bold text-white">
+            Repository URL
           </h2>
 
-          <p>
-            <strong>Name:</strong> {result.repository.name}
+          <p className="text-slate-400 mt-2 mb-8">
+            Paste any public GitHub repository URL.
           </p>
 
-          <p>
-            <strong>Owner:</strong> {result.repository.owner}
-          </p>
+          <input
+            type="text"
+            placeholder="https://github.com/username/repository"
+            value={repoUrl}
+            onChange={(e) => setRepoUrl(e.target.value)}
+            className="w-full rounded-xl p-4 bg-slate-800 border border-slate-700 text-white outline-none"
+          />
 
-          <p>
-            <strong>Language:</strong> {result.repository.language}
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mt-10">
 
-          <p>
-            <strong>Stars:</strong> ⭐ {result.repository.stars}
-          </p>
+            <FeatureCard
+              icon="⭐"
+              title="Repository Score"
+              description="Overall quality evaluation."
+            />
 
-          <hr className="my-6" />
+            <FeatureCard
+              icon="🛡"
+              title="Security"
+              description="AI checks for security improvements."
+            />
 
-          <h2 className="text-3xl font-bold mb-4">
-            AI Analysis
-          </h2>
+            <FeatureCard
+              icon="⚡"
+              title="Performance"
+              description="Optimization recommendations."
+            />
 
-          <pre className="whitespace-pre-wrap">
-            {result.analysis}
-          </pre>
+            <FeatureCard
+              icon="💼"
+              title="Interview Questions"
+              description="AI-generated technical interview questions."
+            />
+
+          </div>
+
+          <button
+            onClick={analyzeRepo}
+            disabled={loading}
+            className="mt-10 w-full bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:scale-[1.02] transition-all duration-300 py-4 rounded-2xl text-xl font-bold text-white shadow-xl disabled:opacity-60"
+          >
+            {loading
+              ? "🤖 AI is analyzing repository..."
+              : "🚀 Analyze Repository"}
+          </button>
 
         </div>
-      )}
+
+        {loading && (
+          <div className="mt-10">
+            <LoadingCard text="Analyzing Repository..." />
+          </div>
+        )}
+
+        {!loading && !result && (
+          <EmptyState
+            icon="🐙"
+            title="No Repository Analyzed"
+            description="Paste a GitHub repository URL and let AI review it."
+          />
+        )}
+
+        {result && (
+          <div className="mt-10">
+
+            <ReportSection
+              icon="📂"
+              title="Repository Information"
+            >
+
+              <div className="space-y-4">
+
+                <p><strong>Name:</strong> {result.repository.name}</p>
+
+                <p><strong>Owner:</strong> {result.repository.owner}</p>
+
+                <p><strong>Language:</strong> {result.repository.language}</p>
+
+                <p><strong>Stars:</strong> ⭐ {result.repository.stars}</p>
+
+              </div>
+
+            </ReportSection>
+
+            <ReportSection
+              icon="🤖"
+              title="AI Repository Analysis"
+            >
+
+              <ReactMarkdown className="prose prose-lg dark:prose-invert max-w-none">
+                {result.analysis}
+              </ReactMarkdown>
+
+            </ReportSection>
+
+            <ActionButtons
+              onDownload={handleDownload}
+              onCopy={handleCopy}
+              onReset={handleReset}
+            />
+
+          </div>
+        )}
+
+      </div>
 
     </div>
   );
 }
-
-export default GithubAnalyzer;

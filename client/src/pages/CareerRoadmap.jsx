@@ -1,9 +1,16 @@
 import { useState } from "react";
 import api from "../services/api";
 import toast from "react-hot-toast";
-import LoadingCard from "../components/common/LoadingCard";
+import ReactMarkdown from "react-markdown";
 
-function CareerRoadmap() {
+import LoadingCard from "../components/common/LoadingCard";
+import FeatureCard from "../components/common/FeatureCard";
+import PageHero from "../components/common/PageHero";
+import ReportSection from "../components/common/ReportSection";
+import ActionButtons from "../components/common/ActionButtons";
+import EmptyState from "../components/common/EmptyState";
+
+export default function CareerRoadmap() {
   const [goal, setGoal] = useState("");
   const [level, setLevel] = useState("Beginner");
   const [roadmap, setRoadmap] = useState("");
@@ -25,82 +32,164 @@ function CareerRoadmap() {
 
       setRoadmap(response.data.roadmap);
 
-      toast.success("Roadmap generated successfully!");
-
+      toast.success("Career roadmap generated successfully 🚀");
     } catch (error) {
       toast.error(
-        error.response?.data?.message || "Something went wrong."
+        error.response?.data?.message ||
+          "Roadmap Generation Failed"
       );
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(roadmap);
+    toast.success("Roadmap copied successfully");
+  };
+
+  const handleReset = () => {
+    setRoadmap("");
+    setGoal("");
+    setLevel("Beginner");
+  };
+
+  const handleDownload = () => {
+    toast("📄 PDF Export coming in Day 17");
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 p-10">
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-10 px-5">
 
-        <h1 className="text-4xl font-bold mb-8">
-          AI Career Roadmap
-        </h1>
+      <div className="max-w-6xl mx-auto">
 
-        <label className="block mb-2 font-semibold">
-          Career Goal
-        </label>
-
-        <input
-          type="text"
-          placeholder="Full Stack Developer"
-          value={goal}
-          onChange={(e) => setGoal(e.target.value)}
-          className="w-full border rounded-lg px-4 py-3 mb-6"
+        <PageHero
+          badge="AI Career Roadmap Generator"
+          title="🛣 AI Career Roadmap"
+          description="Generate a personalized AI roadmap based on your career goal and current skill level."
+          features={[
+            "🎯 Learning Path",
+            "📚 Resources",
+            "💼 Career Planning",
+            "🚀 Growth Strategy",
+          ]}
         />
 
-        <label className="block mb-2 font-semibold">
-          Current Skill Level
-        </label>
+        {/* Input Card */}
 
-        <select
-          value={level}
-          onChange={(e) => setLevel(e.target.value)}
-          className="w-full border rounded-lg px-4 py-3 mb-8"
-        >
-          <option>Beginner</option>
-          <option>Intermediate</option>
-          <option>Advanced</option>
-        </select>
+        <div className="mt-10 bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl shadow-xl p-8">
 
-        <button
-          onClick={generateRoadmap}
-          disabled={loading}
-          className={`px-6 py-3 rounded-lg text-white transition ${
-            loading
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-green-600 hover:bg-green-700"
-          }`}
-        >
-          {loading ? "Generating Roadmap..." : "Generate Roadmap"}
-        </button>
+          <h2 className="text-3xl font-bold text-white">
+            Career Details
+          </h2>
+
+          <p className="text-slate-400 mt-2 mb-8">
+            Tell AI where you want to go.
+          </p>
+
+          <input
+            type="text"
+            placeholder="e.g. MERN Stack Developer"
+            value={goal}
+            onChange={(e) => setGoal(e.target.value)}
+            className="w-full rounded-xl p-4 bg-slate-800 border border-slate-700 text-white mb-6 outline-none"
+          />
+
+          <select
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+            className="w-full rounded-xl p-4 bg-slate-800 border border-slate-700 text-white outline-none"
+          >
+            <option>Beginner</option>
+            <option>Intermediate</option>
+            <option>Advanced</option>
+          </select>
+
+          {/* Feature Cards */}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mt-10">
+
+            <FeatureCard
+              icon="🎯"
+              title="Learning Path"
+              description="Step-by-step roadmap."
+            />
+
+            <FeatureCard
+              icon="📚"
+              title="Resources"
+              description="Courses and learning resources."
+            />
+
+            <FeatureCard
+              icon="💼"
+              title="Career Planning"
+              description="Industry-focused guidance."
+            />
+
+            <FeatureCard
+              icon="🚀"
+              title="Growth Strategy"
+              description="Become job-ready faster."
+            />
+
+          </div>
+
+          <button
+            onClick={generateRoadmap}
+            disabled={loading}
+            className="mt-10 w-full bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 hover:scale-[1.02] transition-all duration-300 py-4 rounded-2xl text-xl font-bold text-white shadow-xl disabled:opacity-60"
+          >
+            {loading
+              ? "🤖 AI is generating roadmap..."
+              : "🛣 Generate AI Roadmap"}
+          </button>
+
+        </div>
+
+        {/* Loading */}
 
         {loading && (
-          <LoadingCard text="Generating AI Roadmap..." />
+          <div className="mt-10">
+            <LoadingCard text="Generating Career Roadmap..." />
+          </div>
         )}
 
-        {roadmap && (
-          <div className="mt-8 bg-white shadow-lg rounded-xl p-6">
-            <h2 className="text-2xl font-bold mb-4">
-              AI Career Roadmap
-            </h2>
+        {/* Empty State */}
 
-            <pre className="whitespace-pre-wrap">
-              {roadmap}
-            </pre>
+        {!loading && !roadmap && (
+          <EmptyState
+            icon="🛣"
+            title="No Roadmap Generated"
+            description="Enter your career goal and let AI create a personalized roadmap."
+          />
+        )}
+
+        {/* AI Report */}
+
+        {roadmap && (
+          <div className="mt-10">
+
+            <ReportSection
+              icon="🛣"
+              title="AI Career Roadmap"
+            >
+              <ReactMarkdown className="prose prose-lg dark:prose-invert max-w-none">
+                {roadmap}
+              </ReactMarkdown>
+            </ReportSection>
+
+            <ActionButtons
+              onDownload={handleDownload}
+              onCopy={handleCopy}
+              onReset={handleReset}
+            />
+
           </div>
         )}
 
       </div>
+
     </div>
   );
 }
-
-export default CareerRoadmap;

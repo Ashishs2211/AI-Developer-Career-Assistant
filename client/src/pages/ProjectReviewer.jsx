@@ -1,9 +1,17 @@
 import { useState } from "react";
 import api from "../services/api";
+import ReactMarkdown from "react-markdown";
 import toast from "react-hot-toast";
-import LoadingCard from "../components/common/LoadingCard";
 
-function ProjectReviewer() {
+import LoadingCard from "../components/common/LoadingCard";
+import FileUpload from "../components/common/FileUpload";
+import FeatureCard from "../components/common/FeatureCard";
+import PageHero from "../components/common/PageHero";
+import ReportSection from "../components/common/ReportSection";
+import ActionButtons from "../components/common/ActionButtons";
+import EmptyState from "../components/common/EmptyState";
+
+export default function ProjectReviewer() {
   const [file, setFile] = useState(null);
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,57 +40,139 @@ function ProjectReviewer() {
 
       setAnalysis(res.data.analysis);
 
-      toast.success("Project reviewed successfully!");
-
+      toast.success("Project reviewed successfully 🚀");
     } catch (err) {
       toast.error(
-        err.response?.data?.message || "Upload Failed"
+        err.response?.data?.message || "Project Review Failed"
       );
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(analysis);
+    toast.success("Report copied successfully");
+  };
+
+  const handleReset = () => {
+    setAnalysis("");
+    setFile(null);
+  };
+
+  const handleDownload = () => {
+    toast("📄 PDF Export coming in Day 17");
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 p-10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-10 px-5">
 
-      <h1 className="text-4xl font-bold mb-8">
-        AI Project Reviewer
-      </h1>
+      <div className="max-w-6xl mx-auto">
 
-      <input
-        type="file"
-        accept=".zip"
-        onChange={(e) => setFile(e.target.files[0])}
-      />
+        <PageHero
+          badge="AI Project Reviewer"
+          title="📂 AI Project Reviewer"
+          description="Upload your ZIP project and receive an AI-powered code review including architecture analysis, scalability, security suggestions, performance improvements and interview questions."
+          features={[
+            "🏗 Architecture",
+            "⚡ Performance",
+            "🛡 Security",
+            "💼 Interview Questions",
+          ]}
+        />
 
-      <button
-        onClick={handleUpload}
-        className="ml-4 bg-blue-600 text-white px-6 py-2 rounded-lg"
-      >
-        Upload Project
-      </button>
+        <div className="mt-10 bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl shadow-xl p-8">
 
-      {loading && (
-        <LoadingCard text="Reviewing Project..." />
-      )}
-
-      {analysis && (
-        <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-
-          <h2 className="text-2xl font-bold mb-4">
-            AI Review
+          <h2 className="text-3xl text-white font-bold">
+            Upload Project
           </h2>
 
-          <pre className="whitespace-pre-wrap">
-            {analysis}
-          </pre>
+          <p className="text-slate-400 mt-2 mb-8">
+            Upload your project as a ZIP file.
+          </p>
+
+          <FileUpload
+            file={file}
+            onChange={(e) => setFile(e.target.files[0])}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mt-10">
+
+            <FeatureCard
+              icon="🏗"
+              title="Architecture"
+              description="Review project structure and design."
+            />
+
+            <FeatureCard
+              icon="⚡"
+              title="Performance"
+              description="Find optimization opportunities."
+            />
+
+            <FeatureCard
+              icon="🛡"
+              title="Security"
+              description="Detect security improvements."
+            />
+
+            <FeatureCard
+              icon="💼"
+              title="Interview"
+              description="Generate project interview questions."
+            />
+
+          </div>
+
+          <button
+            onClick={handleUpload}
+            disabled={loading}
+            className="mt-10 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:scale-[1.02] transition-all duration-300 py-4 rounded-2xl text-xl font-bold text-white shadow-xl disabled:opacity-60"
+          >
+            {loading
+              ? "🤖 AI is reviewing your project..."
+              : "🚀 Review Project with AI"}
+          </button>
 
         </div>
-      )}
+
+        {loading && (
+          <div className="mt-10">
+            <LoadingCard text="Reviewing Project..." />
+          </div>
+        )}
+
+        {!loading && !analysis && (
+          <EmptyState
+            icon="📂"
+            title="No Project Reviewed"
+            description="Upload a ZIP file and let AI review your project."
+          />
+        )}
+
+        {analysis && (
+          <div className="mt-10">
+
+            <ReportSection
+              icon="🤖"
+              title="AI Project Review"
+            >
+              <ReactMarkdown className="prose prose-lg dark:prose-invert max-w-none">
+                {analysis}
+              </ReactMarkdown>
+            </ReportSection>
+
+            <ActionButtons
+              onDownload={handleDownload}
+              onCopy={handleCopy}
+              onReset={handleReset}
+            />
+
+          </div>
+        )}
+
+      </div>
 
     </div>
   );
 }
-
-export default ProjectReviewer;
