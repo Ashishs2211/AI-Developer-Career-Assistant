@@ -9,6 +9,8 @@ import PageHero from "../components/common/PageHero";
 import ReportSection from "../components/common/ReportSection";
 import ActionButtons from "../components/common/ActionButtons";
 import EmptyState from "../components/common/EmptyState";
+import { downloadReport } from "../utils/pdfGenerator";
+import { printReport } from "../utils/printReport";
 
 export default function GithubAnalyzer() {
   const [repoUrl, setRepoUrl] = useState("");
@@ -51,8 +53,21 @@ export default function GithubAnalyzer() {
   };
 
   const handleDownload = () => {
-    toast("📄 PDF Download will be added in Day 17");
-  };
+  downloadReport(
+    "GitHub Repository Analysis",
+    result.analysis
+  );
+
+  toast.success("PDF Downloaded Successfully 🎉");
+};
+const handlePrint = () => {
+  printReport(
+    "GitHub Repository Analysis",
+    result.analysis
+  );
+
+  toast.success("Opening Print Preview...");
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-10 px-5">
@@ -176,11 +191,12 @@ export default function GithubAnalyzer() {
 
             </ReportSection>
 
-            <ActionButtons
-              onDownload={handleDownload}
-              onCopy={handleCopy}
-              onReset={handleReset}
-            />
+              <ActionButtons
+                onDownload={handleDownload}
+                onPrint={handlePrint}
+                onCopy={handleCopy}
+                onReset={handleReset}
+              />
 
           </div>
         )}

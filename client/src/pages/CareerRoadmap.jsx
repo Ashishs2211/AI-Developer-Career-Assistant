@@ -9,6 +9,8 @@ import PageHero from "../components/common/PageHero";
 import ReportSection from "../components/common/ReportSection";
 import ActionButtons from "../components/common/ActionButtons";
 import EmptyState from "../components/common/EmptyState";
+import { downloadReport } from "../utils/pdfGenerator";
+import { printReport } from "../utils/printReport";
 
 export default function CareerRoadmap() {
   const [goal, setGoal] = useState("");
@@ -55,8 +57,22 @@ export default function CareerRoadmap() {
   };
 
   const handleDownload = () => {
-    toast("📄 PDF Export coming in Day 17");
-  };
+  downloadReport(
+    "Career Roadmap",
+    roadmap
+  );
+
+  toast.success("PDF Downloaded Successfully 🎉");
+};
+
+const handlePrint = () => {
+  printReport(
+    "Career Roadmap",
+    roadmap
+  );
+
+  toast.success("Opening Print Preview...");
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-10 px-5">
@@ -181,6 +197,7 @@ export default function CareerRoadmap() {
 
             <ActionButtons
               onDownload={handleDownload}
+              onPrint={handlePrint}
               onCopy={handleCopy}
               onReset={handleReset}
             />

@@ -9,6 +9,8 @@ import PageHero from "../components/common/PageHero";
 import ReportSection from "../components/common/ReportSection";
 import ActionButtons from "../components/common/ActionButtons";
 import EmptyState from "../components/common/EmptyState";
+import { downloadReport } from "../utils/pdfGenerator";
+import { printReport } from "../utils/printReport";
 
 export default function MockInterview() {
   const [role, setRole] = useState("");
@@ -54,8 +56,22 @@ export default function MockInterview() {
   };
 
   const handleDownload = () => {
-    toast("📄 PDF Export coming in Day 17");
-  };
+  downloadReport(
+    "Mock Interview",
+    interview
+  );
+
+  toast.success("PDF Downloaded Successfully 🎉");
+};
+
+const handlePrint = () => {
+  printReport(
+    "Mock Interview",
+    interview
+  );
+
+  toast.success("Opening Print Preview...");
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-10 px-5">
@@ -170,10 +186,11 @@ export default function MockInterview() {
             </ReportSection>
 
             <ActionButtons
-              onDownload={handleDownload}
-              onCopy={handleCopy}
-              onReset={handleReset}
-            />
+                onDownload={handleDownload}
+                onPrint={handlePrint}
+                onCopy={handleCopy}
+                onReset={handleReset}
+              />
 
           </div>
         )}

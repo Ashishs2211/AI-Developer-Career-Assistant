@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { exportPDF } from "../utils/pdfExport";
+import ReactMarkdown from "react-markdown";
 import toast from "react-hot-toast";
+
 import {
   FaFileAlt,
   FaGithub,
@@ -8,9 +9,17 @@ import {
   FaMicrophone,
   FaRoad,
   FaTrash,
+  FaSearch,
+  FaCopy,
+  FaFilePdf,
 } from "react-icons/fa";
 
 import LoadingSpinner from "../components/common/LoadingSpinner";
+import PageHero from "../components/common/PageHero";
+import EmptyState from "../components/common/EmptyState";
+
+import { downloadReport } from "../utils/pdfGenerator";
+
 import {
   getHistory,
   deleteHistory,
@@ -23,7 +32,10 @@ export default function History() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
 
-  // Load History
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
   const loadHistory = async () => {
     try {
       const response = await getHistory();
@@ -36,11 +48,6 @@ export default function History() {
     }
   };
 
-  useEffect(() => {
-    loadHistory();
-  }, []);
-
-  // Delete History
   const handleDelete = async (id) => {
     try {
       await deleteHistory(id);
@@ -51,52 +58,50 @@ export default function History() {
         prev.filter((item) => item._id !== id)
       );
     } catch (error) {
-      console.log(error);
       toast.error("Unable to delete history.");
     }
   };
 
-  // Search + Filter
   const filteredHistory = history.filter((item) => {
-  const searchText = search.toLowerCase().trim();
+    const text = search.toLowerCase().trim();
 
-  const matchesSearch =
-    searchText === "" ||
-    item.type?.toLowerCase().includes(searchText) ||
-    item.title?.toLowerCase().includes(searchText);
+    const matchesSearch =
+      text === "" ||
+      item.type?.toLowerCase().includes(text) ||
+      item.title?.toLowerCase().includes(text);
 
-  const matchesFilter =
-    filter === "all" || item.type === filter;
+    const matchesFilter =
+      filter === "all" ||
+      item.type === filter;
 
-  return matchesSearch && matchesFilter;
-});
+    return matchesSearch && matchesFilter;
+  });
 
-  // Icons
   const getIcon = (type) => {
     switch (type) {
       case "resume":
         return (
-          <FaFileAlt className="text-blue-600 text-3xl" />
+          <FaFileAlt className="text-blue-600 text-4xl" />
         );
 
       case "github":
         return (
-          <FaGithub className="text-gray-800 text-3xl" />
+          <FaGithub className="text-gray-700 text-4xl dark:text-white" />
         );
 
       case "project":
         return (
-          <FaProjectDiagram className="text-orange-500 text-3xl" />
+          <FaProjectDiagram className="text-orange-500 text-4xl" />
         );
 
       case "interview":
         return (
-          <FaMicrophone className="text-purple-600 text-3xl" />
+          <FaMicrophone className="text-purple-600 text-4xl" />
         );
 
       case "roadmap":
         return (
-          <FaRoad className="text-green-600 text-3xl" />
+          <FaRoad className="text-green-600 text-4xl" />
         );
 
       default:
@@ -106,153 +111,223 @@ export default function History() {
 
   if (loading) {
     return (
-      <LoadingSpinner text="Loading History..." />
+      <LoadingSpinner text="Loading AI History..." />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-10 px-6">
 
-      <h1 className="text-4xl font-bold mb-8">
-        📚 My AI History
-      </h1>
+      <div className="max-w-7xl mx-auto">
 
-      {/* Search & Filter */}
-
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-
-        <input
-          type="text"
-          placeholder="🔍 Search history..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 border rounded-lg px-4 py-3"
+        <PageHero
+          badge="AI Report Library"
+          title="📚 AI Report History"
+          description="Access every AI generated report from one place. Search, filter, download, copy and manage your reports."
+          features={[
+            "📄 Resume",
+            "🐙 GitHub",
+            "📂 Project",
+            "🎤 Interview",
+            "🛣 Roadmap",
+          ]}
         />
 
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="border rounded-lg px-4 py-3"
-        >
-          <option value="all">All</option>
-          <option value="resume">Resume</option>
-          <option value="github">GitHub</option>
-          <option value="project">Project</option>
-          <option value="interview">Interview</option>
-          <option value="roadmap">Roadmap</option>
-        </select>
+        {/* Statistics */}
 
-      </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-5 mt-10 mb-10">
 
-      {/* History */}
-
-      <div className="space-y-6">
-
-        {filteredHistory.length === 0 ? (
-
-          <div className="bg-white rounded-xl shadow-lg p-10 text-center">
-
-            <h2 className="text-2xl font-bold">
-              📭 No Results Found
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-6 text-center">
+            <h2 className="text-4xl font-bold">
+              {history.length}
             </h2>
-
-            <p className="text-gray-500 mt-3">
-              Try changing the search text or filter.
+            <p className="text-gray-500 mt-2">
+              Total
             </p>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-6 text-center">
+            <h2 className="text-3xl font-bold text-blue-600">
+              {history.filter(i => i.type === "resume").length}
+            </h2>
+            <p>Resume</p>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-6 text-center">
+            <h2 className="text-3xl font-bold">
+              {history.filter(i => i.type === "github").length}
+            </h2>
+            <p>GitHub</p>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-6 text-center">
+            <h2 className="text-3xl font-bold text-orange-500">
+              {history.filter(i => i.type === "project").length}
+            </h2>
+            <p>Project</p>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-6 text-center">
+            <h2 className="text-3xl font-bold text-purple-600">
+              {history.filter(i => i.type === "interview").length}
+            </h2>
+            <p>Interview</p>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-6 text-center">
+            <h2 className="text-3xl font-bold text-green-600">
+              {history.filter(i => i.type === "roadmap").length}
+            </h2>
+            <p>Roadmap</p>
+          </div>
+
+        </div>
+
+        {/* Search */}
+
+        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl p-6 flex flex-col lg:flex-row gap-5 mb-10">
+
+          <div className="relative flex-1">
+
+            <FaSearch className="absolute left-4 top-4 text-gray-400" />
+
+            <input
+              type="text"
+              placeholder="Search reports..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-12 p-4 rounded-xl border dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+            />
 
           </div>
 
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="rounded-xl border p-4 dark:bg-slate-800 dark:border-slate-700 dark:text-white"
+          >
+            <option value="all">All Reports</option>
+            <option value="resume">Resume</option>
+            <option value="github">GitHub</option>
+            <option value="project">Project</option>
+            <option value="interview">Interview</option>
+            <option value="roadmap">Roadmap</option>
+          </select>
+
+        </div>
+                {/* History List */}
+
+        {filteredHistory.length === 0 ? (
+
+          <EmptyState
+            icon="📭"
+            title="No Reports Found"
+            description="Try changing your search or filter to find reports."
+          />
+
         ) : (
 
-          filteredHistory.map((item) => (
+          <div className="space-y-8">
 
-            <div
-              key={item._id}
-              className="bg-white rounded-2xl shadow-lg p-6"
-            >
+            {filteredHistory.map((item) => (
 
-              <div className="flex justify-between">
+              <div
+                key={item._id}
+                className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 p-8"
+              >
 
-                <div className="flex gap-5">
+                {/* Header */}
 
-                  {getIcon(item.type)}
+                <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-6">
 
-                  <div>
+                  <div className="flex items-center gap-5">
 
-                    <h2 className="text-2xl font-bold capitalize">
-                      {item.type}
-                    </h2>
+                    {getIcon(item.type)}
 
-                    <p className="mt-2">
-                      {item.title || "AI Analysis"}
-                    </p>
+                    <div>
 
-                    <p className="text-gray-500 mt-2">
-                      {new Date(
-                        item.createdAt
-                      ).toLocaleString()}
-                    </p>
+                      <h2 className="text-2xl font-bold capitalize dark:text-white">
+                        {item.type}
+                      </h2>
+
+                      <p className="text-gray-600 dark:text-gray-300 mt-2">
+                        {item.title || "AI Analysis"}
+                      </p>
+
+                      <p className="text-sm text-gray-500 mt-2">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </p>
+
+                    </div>
 
                   </div>
 
+                  <button
+                    onClick={() => handleDelete(item._id)}
+                    className="self-start lg:self-auto text-red-500 hover:text-red-700 text-2xl transition"
+                  >
+                    <FaTrash />
+                  </button>
+
                 </div>
 
-                <button
-                  onClick={() =>
-                    handleDelete(item._id)
-                  }
-                  className="text-red-600 text-xl hover:text-red-800 transition"
-                >
-                  <FaTrash />
-                </button>
+                {/* Result */}
+
+                <details className="mt-8">
+
+                  <summary className="cursor-pointer text-blue-600 font-semibold text-lg hover:text-blue-800">
+                    👀 View AI Report
+                  </summary>
+
+                  <div className="mt-6 bg-slate-100 dark:bg-slate-800 rounded-2xl p-6">
+
+                    <div className="prose prose-lg max-w-none dark:prose-invert">
+
+                      <ReactMarkdown>
+                        {item.result}
+                      </ReactMarkdown>
+
+                    </div>
+
+                  </div>
+
+                  {/* Buttons */}
+
+                  <div className="flex flex-wrap gap-4 mt-6">
+
+                    <button
+                      onClick={() =>
+                        downloadReport(
+                          item.title || "AI Report",
+                          item.result
+                        )
+                      }
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl transition"
+                    >
+                      <FaFilePdf />
+                      Export PDF
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(item.result);
+                        toast.success("Copied Successfully");
+                      }}
+                      className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-3 rounded-xl transition"
+                    >
+                      <FaCopy />
+                      Copy
+                    </button>
+
+                  </div>
+
+                </details>
 
               </div>
 
-              <details className="mt-6">
+            ))}
 
-                <summary className="cursor-pointer text-blue-600 font-semibold hover:text-blue-800">
-                  View AI Result
-                </summary>
-
-                <pre className="mt-4 whitespace-pre-wrap bg-gray-100 rounded-lg p-4 overflow-x-auto">
-                  {item.result}
-                </pre>
-
-                <div className="mt-5 flex gap-3 flex-wrap">
-
-                  <button
-                    onClick={() =>
-                      exportPDF(
-                        item.title || "AI Analysis",
-                        item.result
-                      )
-                    }
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg transition"
-                  >
-                    📄 Export PDF
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        item.result
-                      );
-                      toast.success(
-                        "Copied to clipboard!"
-                      );
-                    }}
-                    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg transition"
-                  >
-                    📋 Copy Result
-                  </button>
-
-                </div>
-
-              </details>
-
-            </div>
-
-          ))
+          </div>
 
         )}
 

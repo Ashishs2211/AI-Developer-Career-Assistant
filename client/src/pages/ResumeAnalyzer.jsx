@@ -10,6 +10,8 @@ import PageHero from "../components/common/PageHero";
 import ReportSection from "../components/common/ReportSection";
 import ActionButtons from "../components/common/ActionButtons";
 import EmptyState from "../components/common/EmptyState";
+import { downloadReport } from "../utils/pdfGenerator";
+import { printReport } from "../utils/printReport";
 
 export default function ResumeAnalyzer() {
   const [resume, setResume] = useState(null);
@@ -57,8 +59,22 @@ export default function ResumeAnalyzer() {
   };
 
   const handleDownload = () => {
-    toast("📄 PDF Download feature coming in Day 17");
-  };
+  downloadReport(
+    "Resume Analysis Report",
+    analysis
+  );
+
+  toast.success("PDF Downloaded Successfully 🎉");
+};
+
+   const handlePrint = () => {
+  printReport(
+    "Resume Analysis Report",
+    analysis
+  );
+
+  toast.success("Opening Print Preview...");
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 py-10 px-5">
@@ -174,6 +190,7 @@ export default function ResumeAnalyzer() {
 
             <ActionButtons
               onDownload={handleDownload}
+              onPrint={handlePrint}
               onCopy={handleCopy}
               onReset={handleReset}
             />

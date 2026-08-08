@@ -2,6 +2,7 @@ export default function ActionButtons({
   onDownload,
   onCopy,
   onReset,
+  onPrint,
 }) {
   return (
     <div className="flex flex-wrap gap-4 mt-10">
@@ -14,10 +15,17 @@ export default function ActionButtons({
       </button>
 
       <button
+        onClick={onPrint}
+        className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-xl"
+      >
+        🖨 Print
+      </button>
+
+      <button
         onClick={onCopy}
         className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl"
       >
-        📋 Copy Report
+        📋 Copy
       </button>
 
       <button
