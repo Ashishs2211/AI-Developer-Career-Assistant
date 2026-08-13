@@ -10,12 +10,13 @@ const historySchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: [
+            enum: [
         "resume",
         "github",
         "project",
         "interview",
         "roadmap",
+        "chat",
       ],
       required: true,
     },

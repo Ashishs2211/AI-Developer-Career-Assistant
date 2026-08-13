@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
-import { FaHistory } from "react-icons/fa";
 import {
   FaFileAlt,
   FaProjectDiagram,
   FaGithub,
   FaMicrophone,
   FaRoad,
+  FaHistory,
+  FaComments,
 } from "react-icons/fa";
+
 import { motion } from "framer-motion";
 
 const actions = [
@@ -52,15 +54,22 @@ const actions = [
     color: "bg-indigo-600",
     link: "/history",
   },
+  {
+    title: "AI Chat Assistant",
+    description: "Ask AI anything about coding and careers",
+    icon: <FaComments />,
+    color: "bg-cyan-600",
+    link: "/chat",
+  },
 ];
 
 export default function QuickActions() {
   return (
-    <div className="mt-12">
+    <div>
 
       <div className="flex items-center justify-between mb-6">
 
-        <h2 className="text-2xl md:text-3xl font-bold">
+        <h2 className="text-2xl md:text-3xl font-bold dark:text-white">
           🤖 AI Tools
         </h2>
 
@@ -76,18 +85,13 @@ export default function QuickActions() {
 
           <motion.div
             key={action.title}
-            whileHover={{
-              scale: 1.04,
-              y: -5,
-            }}
-            transition={{
-              duration: 0.25,
-            }}
+            whileHover={{ scale: 1.04, y: -5 }}
+            transition={{ duration: 0.25 }}
           >
 
             <Link
               to={action.link}
-              className="group block bg-white rounded-2xl shadow-md hover:shadow-2xl border border-gray-200 p-6 transition-all duration-300"
+              className="group block bg-white dark:bg-slate-900 rounded-2xl shadow-md hover:shadow-2xl border border-gray-200 dark:border-slate-700 p-6 transition-all duration-300"
             >
 
               <div
@@ -96,7 +100,7 @@ export default function QuickActions() {
                 {action.icon}
               </div>
 
-              <h3 className="text-xl font-bold group-hover:text-blue-600 transition-colors">
+              <h3 className="text-xl font-bold group-hover:text-blue-600 dark:text-white transition-colors">
                 {action.title}
               </h3>
 
