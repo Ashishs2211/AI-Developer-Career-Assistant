@@ -53,7 +53,7 @@ export default function ProjectReviewer() {
       );
 
     } catch (err) {
-      console.log(err);
+      console.error("Project Review Error:", err);
 
       toast.error(
         err.response?.data?.message ||
@@ -65,15 +65,22 @@ export default function ProjectReviewer() {
     }
   };
 
+
   /* ================= COPY REPORT ================= */
 
   const handleCopy = () => {
+    if (!analysis) {
+      toast.error("No report available to copy.");
+      return;
+    }
+
     navigator.clipboard.writeText(analysis);
 
     toast.success(
       "Report copied successfully"
     );
   };
+
 
   /* ================= RESET ================= */
 
@@ -82,9 +89,15 @@ export default function ProjectReviewer() {
     setFile(null);
   };
 
+
   /* ================= DOWNLOAD ================= */
 
   const handleDownload = () => {
+    if (!analysis) {
+      toast.error("No report available.");
+      return;
+    }
+
     downloadReport(
       "Project Review",
       analysis
@@ -95,9 +108,15 @@ export default function ProjectReviewer() {
     );
   };
 
+
   /* ================= PRINT ================= */
 
   const handlePrint = () => {
+    if (!analysis) {
+      toast.error("No report available.");
+      return;
+    }
+
     printReport(
       "Project Review",
       analysis
@@ -108,12 +127,14 @@ export default function ProjectReviewer() {
     );
   };
 
+
   return (
     <DashboardLayout>
 
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-3xl p-5 md:p-8">
 
         <div className="max-w-6xl mx-auto">
+
 
           {/* ================= HERO ================= */}
 
@@ -129,6 +150,7 @@ export default function ProjectReviewer() {
             ]}
           />
 
+
           {/* ================= UPLOAD CARD ================= */}
 
           <div className="mt-10 bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl shadow-xl p-6 md:p-8">
@@ -141,12 +163,20 @@ export default function ProjectReviewer() {
               Upload your project as a ZIP file.
             </p>
 
+
+            {/* ================= ZIP UPLOAD ================= */}
+
             <FileUpload
               file={file}
+              accept=".zip,application/zip,application/x-zip-compressed"
+              title="Drag & Drop your Project ZIP"
+              description="ZIP only • Maximum 20 MB"
+              inputId="project-upload"
               onChange={(e) =>
                 setFile(e.target.files[0])
               }
             />
+
 
             {/* ================= FEATURES ================= */}
 
@@ -178,6 +208,7 @@ export default function ProjectReviewer() {
 
             </div>
 
+
             {/* ================= REVIEW BUTTON ================= */}
 
             <button
@@ -185,12 +216,15 @@ export default function ProjectReviewer() {
               disabled={loading}
               className="mt-10 w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:scale-[1.02] transition-all duration-300 py-4 rounded-2xl text-xl font-bold text-white shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
             >
+
               {loading
                 ? "🤖 AI is reviewing your project..."
                 : "🚀 Review Project with AI"}
+
             </button>
 
           </div>
+
 
           {/* ================= LOADING ================= */}
 
@@ -204,6 +238,7 @@ export default function ProjectReviewer() {
             </div>
           )}
 
+
           {/* ================= EMPTY STATE ================= */}
 
           {!loading && !analysis && (
@@ -213,6 +248,7 @@ export default function ProjectReviewer() {
               description="Upload a ZIP file and let AI review your project."
             />
           )}
+
 
           {/* ================= AI REPORT ================= */}
 
@@ -224,13 +260,18 @@ export default function ProjectReviewer() {
                 title="AI Project Review"
               >
 
-                <ReactMarkdown
-                  className="prose prose-lg dark:prose-invert max-w-none"
-                >
-                  {analysis}
-                </ReactMarkdown>
+                {/* ReactMarkdown FIX */}
+
+                <div className="prose prose-lg dark:prose-invert max-w-none">
+
+                  <ReactMarkdown>
+                    {analysis}
+                  </ReactMarkdown>
+
+                </div>
 
               </ReportSection>
+
 
               {/* ================= ACTION BUTTONS ================= */}
 

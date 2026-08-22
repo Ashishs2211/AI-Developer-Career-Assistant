@@ -3,19 +3,24 @@ import { UploadCloud } from "lucide-react";
 export default function FileUpload({
   file,
   onChange,
+  accept = ".pdf",
+  title = "Drag & Drop your Resume",
+  description = "PDF only • Maximum 5 MB",
+  inputId = "file-upload",
 }) {
   return (
     <label
-      htmlFor="resume"
+      htmlFor={inputId}
       className="cursor-pointer block border-2 border-dashed border-blue-500 rounded-3xl p-12 text-center bg-gradient-to-br from-slate-900 to-slate-800 hover:border-cyan-400 transition-all duration-300"
     >
+
       <UploadCloud
         size={70}
         className="mx-auto text-blue-400"
       />
 
       <h2 className="text-2xl font-bold text-white mt-6">
-        Drag & Drop your Resume
+        {title}
       </h2>
 
       <p className="text-slate-400 mt-2">
@@ -23,7 +28,7 @@ export default function FileUpload({
       </p>
 
       <p className="text-sm text-slate-500 mt-4">
-        PDF only • Maximum 5 MB
+        {description}
       </p>
 
       {file && (
@@ -33,12 +38,13 @@ export default function FileUpload({
       )}
 
       <input
-        id="resume"
+        id={inputId}
         type="file"
-        accept=".pdf"
+        accept={accept}
         onChange={onChange}
         hidden
       />
+
     </label>
   );
 }
