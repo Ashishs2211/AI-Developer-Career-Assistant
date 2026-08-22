@@ -16,6 +16,7 @@ import ChatAssistant from "./pages/ChatAssistant";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Profile from "./pages/Profile";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -120,6 +121,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route path="*" element={<NotFound />} />
 
     </Routes>
   );

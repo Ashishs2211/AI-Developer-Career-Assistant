@@ -8,27 +8,41 @@ import {
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(
-    localStorage.getItem("token") || null
-  );
+  const [token, setToken] = useState(null);
 
-  const login = (jwtToken) => {
-    localStorage.setItem("token", jwtToken);
-    setToken(jwtToken);
-  };
+  const [loading, setLoading] = useState(true);
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
-  };
+  /* ================= INITIAL AUTH CHECK ================= */
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+    const storedToken =
+      localStorage.getItem("token");
 
     if (storedToken) {
       setToken(storedToken);
     }
+
+    setLoading(false);
   }, []);
+
+  /* ================= LOGIN ================= */
+
+  const login = (jwtToken) => {
+    localStorage.setItem(
+      "token",
+      jwtToken
+    );
+
+    setToken(jwtToken);
+  };
+
+  /* ================= LOGOUT ================= */
+
+  const logout = () => {
+    localStorage.removeItem("token");
+
+    setToken(null);
+  };
 
   return (
     <AuthContext.Provider
@@ -36,6 +50,7 @@ export function AuthProvider({ children }) {
         token,
         login,
         logout,
+        loading,
         isAuthenticated: !!token,
       }}
     >
@@ -43,6 +58,8 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
+
+/* ================= USE AUTH ================= */
 
 export function useAuth() {
   return useContext(AuthContext);

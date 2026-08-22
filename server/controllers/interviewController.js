@@ -6,19 +6,31 @@ const History = require("../models/History");
 
 const startInterview = async (req, res) => {
   try {
-    const { role, experience } = req.body;
+    const {
+      role,
+      experience,
+    } = req.body;
+
+    /* ================= VALIDATION ================= */
 
     if (!role || !experience) {
       return res.status(400).json({
         success: false,
-        message: "Role and experience are required.",
+        message:
+          "Role and experience are required.",
       });
     }
 
-    // Generate AI Interview
-    const interview = await generateInterview(role, experience);
+    /* ================= AI GENERATION ================= */
 
-    // Save History
+    const interview =
+      await generateInterview(
+        role,
+        experience
+      );
+
+    /* ================= SAVE HISTORY ================= */
+
     await History.create({
       user: req.user.userId,
       type: "interview",
@@ -26,17 +38,28 @@ const startInterview = async (req, res) => {
       result: interview,
     });
 
-    res.status(200).json({
+    /* ================= SUCCESS ================= */
+
+    return res.status(200).json({
       success: true,
       interview,
     });
 
   } catch (error) {
-    console.error(error);
 
-    res.status(500).json({
+    console.error(
+      "Interview Controller Error:",
+      error
+    );
+
+    const statusCode =
+      error.status || 500;
+
+    return res.status(statusCode).json({
       success: false,
-      message: error.message,
+      message:
+        error.message ||
+        "Interview Generation Failed",
     });
   }
 };
