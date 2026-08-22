@@ -15,6 +15,7 @@ import AITools from "./pages/AITools";
 import ChatAssistant from "./pages/ChatAssistant";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -110,6 +111,15 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+              <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
 
     </Routes>
   );
