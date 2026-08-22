@@ -13,9 +13,7 @@ const client = new OpenAI({
 
 async function analyzeResume(resumeText) {
 
-  try {
-
-    const prompt = `
+  const prompt = `
 You are an expert ATS Resume Analyzer.
 
 Analyze the resume.
@@ -55,120 +53,211 @@ ${resumeText}
 `;
 
 
-    const completion =
-      await client.chat.completions.create({
+  /* =========================================
+     RETRY CONFIGURATION
+  ========================================= */
 
-        model: "openrouter/free",
-
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-
-        temperature: 0.7,
-
-        max_tokens: 1500,
-
-      });
+  const delays = [
+    2000,   // 2 seconds
+    5000,   // 5 seconds
+    10000,  // 10 seconds
+  ];
 
 
-    const result =
-      completion?.choices?.[0]?.message?.content;
+  let lastError = null;
 
 
-    if (!result) {
+  /* =========================================
+     TRY AI REQUEST
+  ========================================= */
 
-      const error = new Error(
-        "AI returned an empty response."
+  for (let attempt = 0; attempt < 3; attempt++) {
+
+    try {
+
+      console.log(
+        `OpenRouter Resume Request - Attempt ${
+          attempt + 1
+        }/3`
       );
 
-      error.status = 502;
 
-      throw error;
-    }
+      const completion =
+        await client.chat.completions.create({
 
+          model: "openrouter/free",
 
-    return result;
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
 
+          temperature: 0.7,
 
-  } catch (error) {
+          max_tokens: 1500,
 
-    console.error(
-      "========== OPENROUTER ERROR =========="
-    );
-
-    console.error(
-      "Status:",
-      error?.status ||
-        error?.response?.status
-    );
-
-    console.error(
-      "Message:",
-      error?.message
-    );
-
-    console.error(
-      "======================================"
-    );
+        });
 
 
-    /* ===============================
-       RATE LIMIT
-    =============================== */
+      /* =====================================
+         CHECK RESPONSE
+      ===================================== */
 
-    if (
-      error?.status === 429 ||
-      error?.response?.status === 429
-    ) {
+      const result =
+        completion?.choices?.[0]?.message?.content;
 
-      const rateLimitError = new Error(
-        "AI service is temporarily rate limited. Please wait and try again."
+
+      if (!result) {
+
+        const emptyResponseError =
+          new Error(
+            "AI returned an empty response."
+          );
+
+        emptyResponseError.status = 502;
+
+        throw emptyResponseError;
+      }
+
+
+      console.log(
+        "Resume AI response received successfully."
       );
 
-      rateLimitError.status = 429;
 
-      throw rateLimitError;
-    }
+      return result;
 
 
-    /* ===============================
-       INVALID API KEY
-    =============================== */
+    } catch (error) {
 
-    if (
-      error?.status === 401 ||
-      error?.response?.status === 401
-    ) {
+      lastError = error;
 
-      const authError = new Error(
-        "OpenRouter API key is invalid or missing."
+
+      const status =
+        error?.status ||
+        error?.response?.status;
+
+
+      console.error(
+        "========== OPENROUTER ERROR =========="
       );
 
-      authError.status = 401;
+      console.error(
+        "Attempt:",
+        `${attempt + 1}/3`
+      );
 
-      throw authError;
+      console.error(
+        "Status:",
+        status
+      );
+
+      console.error(
+        "Message:",
+        error?.message
+      );
+
+      console.error(
+        "======================================"
+      );
+
+
+      /* =====================================
+         RATE LIMIT - RETRY
+      ===================================== */
+
+      if (status === 429) {
+
+        if (attempt < 2) {
+
+          const delay =
+            delays[attempt];
+
+          console.log(
+            `OpenRouter rate limited. Retrying in ${
+              delay / 1000
+            } seconds...`
+          );
+
+
+          await new Promise(
+            (resolve) =>
+              setTimeout(resolve, delay)
+          );
+
+
+          continue;
+        }
+
+
+        /* ================================
+           ALL RETRIES FAILED
+        ================================= */
+
+        const rateLimitError =
+          new Error(
+            "AI service is temporarily rate limited. Please wait and try again."
+          );
+
+        rateLimitError.status = 429;
+
+        throw rateLimitError;
+      }
+
+
+      /* =====================================
+         INVALID API KEY
+      ===================================== */
+
+      if (status === 401) {
+
+        const authError =
+          new Error(
+            "OpenRouter API key is invalid or missing."
+          );
+
+        authError.status = 401;
+
+        throw authError;
+      }
+
+
+      /* =====================================
+         OTHER ERROR
+      ===================================== */
+
+      const serverError =
+        new Error(
+          error?.message ||
+            "Failed to analyze resume."
+        );
+
+      serverError.status =
+        status || 500;
+
+      throw serverError;
     }
+  }
 
 
-    /* ===============================
-       OTHER ERRORS
-    =============================== */
+  /* =========================================
+     FALLBACK
+  ========================================= */
 
-    const serverError = new Error(
-      error?.message ||
+  const finalError =
+    new Error(
+      lastError?.message ||
         "Failed to analyze resume."
     );
 
-    serverError.status =
-      error?.status ||
-      error?.response?.status ||
-      500;
+  finalError.status =
+    lastError?.status ||
+    lastError?.response?.status ||
+    500;
 
-    throw serverError;
-  }
+  throw finalError;
 }
 
 
@@ -186,7 +275,7 @@ async function fetchRepositoryDetails(
     const [
       repoInfo,
       readme,
-      languages
+      languages,
     ] = await Promise.all([
 
       axios.get(
@@ -221,16 +310,27 @@ async function fetchRepositoryDetails(
 
     };
 
+
   } catch (error) {
+
+    console.error(
+      "GitHub Repository Error:",
+      error
+    );
+
 
     throw new Error(
       "Unable to fetch repository details."
     );
-
   }
 }
 
 
+/* =========================================
+   EXPORTS
+========================================= */
+
 module.exports = {
   analyzeResume,
+  fetchRepositoryDetails,
 };
