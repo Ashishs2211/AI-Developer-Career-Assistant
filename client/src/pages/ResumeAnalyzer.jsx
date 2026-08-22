@@ -224,11 +224,11 @@ export default function ResumeAnalyzer() {
                 title="AI Resume Report"
               >
 
-                <ReactMarkdown
-                  className="prose prose-lg dark:prose-invert max-w-none"
-                >
-                  {analysis}
-                </ReactMarkdown>
+                <div className="prose prose-lg dark:prose-invert max-w-none">
+                 <ReactMarkdown>
+                 {analysis}
+                 </ReactMarkdown>
+                 </div>
 
               </ReportSection>
 

@@ -6,6 +6,11 @@ const History = require("../models/History");
 
 const uploadResume = async (req, res) => {
   try {
+
+    /* ===============================
+       CHECK FILE
+    =============================== */
+
     if (!req.file) {
       return res.status(400).json({
         success: false,
@@ -13,16 +18,38 @@ const uploadResume = async (req, res) => {
       });
     }
 
-    // Read uploaded PDF
-    const fileBuffer = fs.readFileSync(req.file.path);
 
-    // Extract text
-    const pdfData = await pdfParse(fileBuffer);
+    /* ===============================
+       READ PDF
+    =============================== */
 
-    // AI Analysis
-    const aiResponse = await analyzeResume(pdfData.text);
+    const fileBuffer = fs.readFileSync(
+      req.file.path
+    );
 
-    // Save History
+
+    /* ===============================
+       EXTRACT TEXT
+    =============================== */
+
+    const pdfData =
+      await pdfParse(fileBuffer);
+
+
+    /* ===============================
+       AI ANALYSIS
+    =============================== */
+
+    const aiResponse =
+      await analyzeResume(
+        pdfData.text
+      );
+
+
+    /* ===============================
+       SAVE HISTORY
+    =============================== */
+
     await History.create({
       user: req.user.userId,
       type: "resume",
@@ -30,25 +57,58 @@ const uploadResume = async (req, res) => {
       result: aiResponse,
     });
 
-    // Delete uploaded file
-    fs.unlinkSync(req.file.path);
 
-    res.status(200).json({
+    /* ===============================
+       DELETE TEMP FILE
+    =============================== */
+
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+
+
+    /* ===============================
+       SUCCESS
+    =============================== */
+
+    return res.status(200).json({
       success: true,
-      message: "Resume analyzed successfully",
+      message:
+        "Resume analyzed successfully",
       analysis: aiResponse,
     });
 
   } catch (error) {
-  console.error("========== Resume Upload Error ==========");
-  console.error(error);
-  console.error(error.stack);
 
-  res.status(500).json({
-    success: false,
-    message: error.message,
-  });
-}
+    console.error(
+      "========== Resume Upload Error =========="
+    );
+
+    console.error(error);
+    console.error(error.stack);
+
+
+    /* ===============================
+       ERROR STATUS
+    =============================== */
+
+    const statusCode =
+      error.status ||
+      error.response?.status ||
+      500;
+
+
+    /* ===============================
+       ERROR RESPONSE
+    =============================== */
+
+    return res.status(statusCode).json({
+      success: false,
+      message:
+        error.message ||
+        "Resume Analysis Failed",
+    });
+  }
 };
 
 module.exports = {
