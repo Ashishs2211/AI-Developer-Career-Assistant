@@ -171,6 +171,102 @@ const updateProfile = async (req, res) => {
       profileImage,
     } = req.body;
 
+
+
+    /* ================= CHANGE PASSWORD ================= */
+
+const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const {
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    } = req.body;
+
+    // Validate fields
+    if (
+      !currentPassword ||
+      !newPassword ||
+      !confirmPassword
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please fill all password fields.",
+      });
+    }
+
+    // Check new password length
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "New password must be at least 6 characters.",
+      });
+    }
+
+    // Check password confirmation
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "New password and confirm password do not match.",
+      });
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
+
+    if (!isMatch) {
+      return res.status(400).json({
+        success: false,
+        message: "Current password is incorrect.",
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(
+      newPassword,
+      10
+    );
+
+    // Save new password
+    user.password = hashedPassword;
+
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password changed successfully.",
+    });
+
+  } catch (error) {
+    console.error(
+      "Change Password Error:",
+      error
+    );
+
+    res.status(500).json({
+      success: false,
+      message: "Unable to change password.",
+    });
+  }
+};
+
     /* ---------- Validation ---------- */
 
     if (!name || !name.trim()) {
@@ -262,4 +358,5 @@ module.exports = {
   loginUser,
   getProfile,
   updateProfile,
+  changePassword,
 };

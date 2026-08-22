@@ -9,6 +9,7 @@ const {
   loginUser,
   getProfile,
   updateProfile,
+  changePassword,
 } = require("../controllers/authController");
 
 // ================= PUBLIC ROUTES =================
@@ -24,5 +25,11 @@ router.get("/profile", protect, getProfile);
 
 // Update logged-in user's profile
 router.put("/profile", protect, updateProfile);
+
+router.put(
+  "/change-password",
+  protect,
+  changePassword
+);
 
 module.exports = router;
