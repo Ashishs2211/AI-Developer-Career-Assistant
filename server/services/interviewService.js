@@ -51,7 +51,7 @@ Give 5 practical interview preparation tips.
   try {
     const completion =
       await client.chat.completions.create({
-        model: "google/gemma-4-26b-a4b-it:free",
+        model: "openrouter/free",
 
         messages: [
           {
