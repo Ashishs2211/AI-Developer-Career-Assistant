@@ -2,6 +2,8 @@ const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+/* ================= REGISTER ================= */
+
 const registerUser = async (req, res) => {
   try {
     const {
@@ -59,11 +61,12 @@ const registerUser = async (req, res) => {
   }
 };
 
+/* ================= LOGIN ================= */
+
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check required fields
     if (!email || !password) {
       return res.status(400).json({
         success: false,
@@ -71,7 +74,6 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Find user
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -81,8 +83,10 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Compare password
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
 
     if (!isMatch) {
       return res.status(400).json({
@@ -91,7 +95,6 @@ const loginUser = async (req, res) => {
       });
     }
 
-    // Generate JWT
     const token = jwt.sign(
       {
         userId: user._id,
@@ -102,7 +105,6 @@ const loginUser = async (req, res) => {
       }
     );
 
-    // Remove password
     const userResponse = user.toObject();
     delete userResponse.password;
 
@@ -114,6 +116,8 @@ const loginUser = async (req, res) => {
     });
 
   } catch (error) {
+    console.error(error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -121,10 +125,21 @@ const loginUser = async (req, res) => {
   }
 };
 
+/* ================= GET PROFILE ================= */
+
 const getProfile = async (req, res) => {
   try {
 
-    const user = await User.findById(req.user.userId).select("-password");
+    const user = await User.findById(
+      req.user.userId
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -141,9 +156,110 @@ const getProfile = async (req, res) => {
   }
 };
 
+/* ================= UPDATE PROFILE ================= */
+
+const updateProfile = async (req, res) => {
+  try {
+
+    const userId = req.user.userId;
+
+    const {
+      name,
+      githubUsername,
+      linkedin,
+      skills,
+      profileImage,
+    } = req.body;
+
+    /* ---------- Validation ---------- */
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Name is required",
+      });
+    }
+
+    /* ---------- Format Skills ---------- */
+
+    let formattedSkills = [];
+
+    if (Array.isArray(skills)) {
+
+      formattedSkills = skills
+        .map((skill) => String(skill).trim())
+        .filter((skill) => skill.length > 0);
+
+    } else if (typeof skills === "string") {
+
+      formattedSkills = skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter((skill) => skill.length > 0);
+
+    }
+
+    /* ---------- Update User ---------- */
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        name: name.trim(),
+
+        githubUsername:
+          githubUsername?.trim() || "",
+
+        linkedin:
+          linkedin?.trim() || "",
+
+        skills: formattedSkills,
+
+        profileImage:
+          profileImage?.trim() || "",
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).select("-password");
+
+    /* ---------- User Not Found ---------- */
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    /* ---------- Response ---------- */
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user: updatedUser,
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Update Profile Error:",
+      error
+    );
+
+    res.status(500).json({
+      success: false,
+      message: "Unable to update profile",
+    });
+
+  }
+};
+
+/* ================= EXPORTS ================= */
 
 module.exports = {
   registerUser,
   loginUser,
   getProfile,
+  updateProfile,
 };
