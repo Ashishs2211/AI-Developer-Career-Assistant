@@ -1,10 +1,27 @@
 const OpenAI = require("openai");
 const axios = require("axios");
 
+/* =========================================
+   OPENROUTER CLIENT
+========================================= */
+
 const client = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: "https://openrouter.ai/api/v1",
+
+  // Prevent AI request from hanging too long
+  timeout: 50000,
+
+  // We handle retries manually below
+  maxRetries: 0,
 });
+
+/* =========================================
+   HELPER - DELAY
+========================================= */
+
+const sleep = (ms) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 
 /* =========================================
@@ -13,17 +30,46 @@ const client = new OpenAI({
 
 async function analyzeResume(resumeText) {
 
+  if (!resumeText || !resumeText.trim()) {
+    const error = new Error(
+      "Resume text is required."
+    );
+
+    error.status = 400;
+
+    throw error;
+  }
+
+
+  /* =========================================
+     LIMIT VERY LARGE RESUMES
+  ========================================= */
+
+  const cleanResumeText =
+    resumeText.trim().slice(0, 15000);
+
+
+  /* =========================================
+     PROMPT
+  ========================================= */
+
   const prompt = `
 You are an expert ATS Resume Analyzer.
 
-Analyze the resume.
+Analyze the resume provided below.
 
-Return your response ONLY in this format:
+Provide useful and realistic feedback based ONLY on
+the information available in the resume.
+
+Do not invent skills, experience, projects, education,
+or achievements that are not present.
+
+Return your response ONLY in this Markdown format:
 
 # ATS Resume Analysis
 
 ## ATS Score
-<score>/100
+Give a score out of 100 and a short explanation.
 
 ## Strengths
 - Point 1
@@ -38,18 +84,21 @@ Return your response ONLY in this format:
 ## Missing Keywords
 - Point 1
 - Point 2
+- Point 3
 
 ## Recommended Skills
 - Point 1
 - Point 2
+- Point 3
 
 ## Improvement Suggestions
 - Point 1
 - Point 2
+- Point 3
 
 Resume:
 
-${resumeText}
+${cleanResumeText}
 `;
 
 
@@ -57,28 +106,31 @@ ${resumeText}
      RETRY CONFIGURATION
   ========================================= */
 
-  const delays = [
-    2000,   // 2 seconds
-    5000,   // 5 seconds
-    10000,  // 10 seconds
-  ];
+  const MAX_ATTEMPTS = 2;
 
+  const delays = [
+    3000,
+  ];
 
   let lastError = null;
 
 
   /* =========================================
-     TRY AI REQUEST
+     AI REQUEST
   ========================================= */
 
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (
+    let attempt = 0;
+    attempt < MAX_ATTEMPTS;
+    attempt++
+  ) {
 
     try {
 
       console.log(
         `OpenRouter Resume Request - Attempt ${
           attempt + 1
-        }/3`
+        }/${MAX_ATTEMPTS}`
       );
 
 
@@ -89,41 +141,91 @@ ${resumeText}
 
           messages: [
             {
+              role: "system",
+              content: `
+You are a professional ATS Resume Analyzer.
+
+Always provide a complete and useful resume analysis.
+
+Follow the exact Markdown structure requested by the user.
+
+Do not return empty responses.
+Do not return safety classifications.
+              `,
+            },
+            {
               role: "user",
               content: prompt,
             },
           ],
 
-          temperature: 0.7,
+          temperature: 0.5,
 
-          max_tokens: 1500,
+          max_tokens: 1200,
 
         });
 
 
       /* =====================================
-         CHECK RESPONSE
+         EXTRACT RESPONSE
       ===================================== */
 
       const result =
-        completion?.choices?.[0]?.message?.content;
+        completion?.choices?.[0]?.message?.content?.trim();
 
+
+      /* =====================================
+         CHECK EMPTY RESPONSE
+      ===================================== */
 
       if (!result) {
 
-        const emptyResponseError =
-          new Error(
-            "AI returned an empty response."
-          );
+        const error = new Error(
+          "AI returned an empty response."
+        );
 
-        emptyResponseError.status = 502;
+        error.status = 502;
 
-        throw emptyResponseError;
+        throw error;
+      }
+
+
+      /* =====================================
+         CHECK VALID RESPONSE
+      ===================================== */
+
+      const isTooShort =
+        result.length < 100;
+
+      const hasATSAnalysis =
+        result.toLowerCase().includes(
+          "ats resume analysis"
+        );
+
+      const hasScore =
+        result.toLowerCase().includes(
+          "ats score"
+        );
+
+
+      if (
+        isTooShort ||
+        !hasATSAnalysis ||
+        !hasScore
+      ) {
+
+        const error = new Error(
+          "AI returned an incomplete resume analysis."
+        );
+
+        error.status = 502;
+
+        throw error;
       }
 
 
       console.log(
-        "Resume AI response received successfully."
+        "Resume AI response generated successfully."
       );
 
 
@@ -134,19 +236,26 @@ ${resumeText}
 
       lastError = error;
 
-
       const status =
         error?.status ||
         error?.response?.status;
 
+      const message =
+        error?.message ||
+        "Unknown AI error";
+
+
+      /* =====================================
+         LOG ERROR
+      ===================================== */
 
       console.error(
-        "========== OPENROUTER ERROR =========="
+        "========== OPENROUTER RESUME ERROR =========="
       );
 
       console.error(
         "Attempt:",
-        `${attempt + 1}/3`
+        `${attempt + 1}/${MAX_ATTEMPTS}`
       );
 
       console.error(
@@ -156,55 +265,12 @@ ${resumeText}
 
       console.error(
         "Message:",
-        error?.message
+        message
       );
 
       console.error(
-        "======================================"
+        "============================================="
       );
-
-
-      /* =====================================
-         RATE LIMIT - RETRY
-      ===================================== */
-
-      if (status === 429) {
-
-        if (attempt < 2) {
-
-          const delay =
-            delays[attempt];
-
-          console.log(
-            `OpenRouter rate limited. Retrying in ${
-              delay / 1000
-            } seconds...`
-          );
-
-
-          await new Promise(
-            (resolve) =>
-              setTimeout(resolve, delay)
-          );
-
-
-          continue;
-        }
-
-
-        /* ================================
-           ALL RETRIES FAILED
-        ================================= */
-
-        const rateLimitError =
-          new Error(
-            "AI service is temporarily rate limited. Please wait and try again."
-          );
-
-        rateLimitError.status = 429;
-
-        throw rateLimitError;
-      }
 
 
       /* =====================================
@@ -213,10 +279,9 @@ ${resumeText}
 
       if (status === 401) {
 
-        const authError =
-          new Error(
-            "OpenRouter API key is invalid or missing."
-          );
+        const authError = new Error(
+          "AI service authentication failed."
+        );
 
         authError.status = 401;
 
@@ -225,14 +290,83 @@ ${resumeText}
 
 
       /* =====================================
+         RETRY TEMPORARY ERRORS
+      ===================================== */
+
+      const shouldRetry =
+        attempt < MAX_ATTEMPTS - 1 &&
+        (
+          status === 429 ||
+          status === 502 ||
+          status === 503 ||
+          status === 504 ||
+          error?.code === "ETIMEDOUT" ||
+          error?.code === "ECONNRESET" ||
+          error?.name === "APIConnectionTimeoutError"
+        );
+
+
+      if (shouldRetry) {
+
+        const delay =
+          delays[attempt] || 3000;
+
+        console.log(
+          `Temporary AI error. Retrying in ${
+            delay / 1000
+          } seconds...`
+        );
+
+        await sleep(delay);
+
+        continue;
+      }
+
+
+      /* =====================================
+         RATE LIMIT
+      ===================================== */
+
+      if (status === 429) {
+
+        const rateLimitError = new Error(
+          "AI service is currently busy. Please wait a moment and try again."
+        );
+
+        rateLimitError.status = 429;
+
+        throw rateLimitError;
+      }
+
+
+      /* =====================================
+         AI TIMEOUT
+      ===================================== */
+
+      if (
+        error?.code === "ETIMEDOUT" ||
+        error?.name === "APIConnectionTimeoutError" ||
+        message.toLowerCase().includes("timeout")
+      ) {
+
+        const timeoutError = new Error(
+          "AI service took too long to respond. Please try again."
+        );
+
+        timeoutError.status = 504;
+
+        throw timeoutError;
+      }
+
+
+      /* =====================================
          OTHER ERROR
       ===================================== */
 
-      const serverError =
-        new Error(
-          error?.message ||
-            "Failed to analyze resume."
-        );
+      const serverError = new Error(
+        message ||
+        "Failed to analyze resume."
+      );
 
       serverError.status =
         status || 500;
@@ -243,14 +377,13 @@ ${resumeText}
 
 
   /* =========================================
-     FALLBACK
+     FINAL FALLBACK
   ========================================= */
 
-  const finalError =
-    new Error(
-      lastError?.message ||
-        "Failed to analyze resume."
-    );
+  const finalError = new Error(
+    lastError?.message ||
+    "Failed to analyze resume."
+  );
 
   finalError.status =
     lastError?.status ||
@@ -272,6 +405,12 @@ async function fetchRepositoryDetails(
 
   try {
 
+    const headers = {
+      Accept:
+        "application/vnd.github+json",
+    };
+
+
     const [
       repoInfo,
       readme,
@@ -279,15 +418,27 @@ async function fetchRepositoryDetails(
     ] = await Promise.all([
 
       axios.get(
-        `https://api.github.com/repos/${owner}/${repo}`
+        `https://api.github.com/repos/${owner}/${repo}`,
+        {
+          headers,
+          timeout: 15000,
+        }
       ),
 
       axios.get(
-        `https://api.github.com/repos/${owner}/${repo}/readme`
+        `https://api.github.com/repos/${owner}/${repo}/readme`,
+        {
+          headers,
+          timeout: 15000,
+        }
       ),
 
       axios.get(
-        `https://api.github.com/repos/${owner}/${repo}/languages`
+        `https://api.github.com/repos/${owner}/${repo}/languages`,
+        {
+          headers,
+          timeout: 15000,
+        }
       ),
 
     ]);
@@ -298,15 +449,17 @@ async function fetchRepositoryDetails(
       repo: repoInfo.data,
 
       readme:
-        Buffer
-          .from(
-            readme.data.content,
-            "base64"
-          )
-          .toString("utf8"),
+        readme?.data?.content
+          ? Buffer
+              .from(
+                readme.data.content,
+                "base64"
+              )
+              .toString("utf8")
+          : "",
 
       languages:
-        languages.data,
+        languages.data || {},
 
     };
 
@@ -314,14 +467,33 @@ async function fetchRepositoryDetails(
   } catch (error) {
 
     console.error(
-      "GitHub Repository Error:",
-      error
+      "========== GITHUB REPOSITORY ERROR =========="
+    );
+
+    console.error(
+      "Status:",
+      error?.response?.status
+    );
+
+    console.error(
+      "Message:",
+      error?.message
+    );
+
+    console.error(
+      "============================================="
     );
 
 
-    throw new Error(
+    const githubError = new Error(
       "Unable to fetch repository details."
     );
+
+    githubError.status =
+      error?.response?.status ||
+      500;
+
+    throw githubError;
   }
 }
 

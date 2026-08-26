@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  timeout: 60000,
+  timeout: 120000,
 });
 
 /* =========================================
