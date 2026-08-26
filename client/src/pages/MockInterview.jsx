@@ -62,7 +62,10 @@ export default function MockInterview() {
   /* ================= COPY ================= */
 
   const handleCopy = () => {
-    if (!interview) return;
+    if (!interview) {
+      toast.error("No interview available to copy.");
+      return;
+    }
 
     navigator.clipboard.writeText(interview);
 
@@ -82,7 +85,10 @@ export default function MockInterview() {
   /* ================= DOWNLOAD ================= */
 
   const handleDownload = () => {
-    if (!interview) return;
+    if (!interview) {
+      toast.error("No interview available.");
+      return;
+    }
 
     downloadReport(
       "Mock Interview",
@@ -97,7 +103,10 @@ export default function MockInterview() {
   /* ================= PRINT ================= */
 
   const handlePrint = () => {
-    if (!interview) return;
+    if (!interview) {
+      toast.error("No interview available.");
+      return;
+    }
 
     printReport(
       "Mock Interview",
@@ -142,7 +151,7 @@ export default function MockInterview() {
               Enter your target role and experience level.
             </p>
 
-            {/* Job Role */}
+            {/* ================= JOB ROLE ================= */}
 
             <input
               type="text"
@@ -159,7 +168,7 @@ export default function MockInterview() {
               className="w-full rounded-xl p-4 bg-slate-800 border border-slate-700 text-white mb-6 outline-none focus:ring-2 focus:ring-blue-500"
             />
 
-            {/* Experience */}
+            {/* ================= EXPERIENCE ================= */}
 
             <select
               value={experience}
@@ -250,11 +259,13 @@ export default function MockInterview() {
                 title="AI Mock Interview"
               >
 
-                <ReactMarkdown
-                  className="prose prose-lg dark:prose-invert max-w-none"
-                >
-                  {interview}
-                </ReactMarkdown>
+                {/* ReactMarkdown must NOT receive className */}
+
+                <div className="prose prose-lg dark:prose-invert max-w-none">
+                  <ReactMarkdown>
+                    {interview}
+                  </ReactMarkdown>
+                </div>
 
               </ReportSection>
 

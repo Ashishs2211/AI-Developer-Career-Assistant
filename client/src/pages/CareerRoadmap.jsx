@@ -45,13 +45,15 @@ export default function CareerRoadmap() {
       toast.success(
         "Career roadmap generated successfully 🚀"
       );
+
     } catch (error) {
-      console.log(error);
+      console.error("Roadmap Error:", error);
 
       toast.error(
         error.response?.data?.message ||
-          "Roadmap Generation Failed"
+        "Roadmap Generation Failed"
       );
+
     } finally {
       setLoading(false);
     }
@@ -59,14 +61,24 @@ export default function CareerRoadmap() {
 
   /* ================= COPY ================= */
 
-  const handleCopy = () => {
-    if (!roadmap) return;
+  const handleCopy = async () => {
+    if (!roadmap) {
+      toast.error("No roadmap available to copy.");
+      return;
+    }
 
-    navigator.clipboard.writeText(roadmap);
+    try {
+      await navigator.clipboard.writeText(roadmap);
 
-    toast.success(
-      "Roadmap copied successfully"
-    );
+      toast.success(
+        "Roadmap copied successfully"
+      );
+
+    } catch (error) {
+      console.error("Copy Error:", error);
+
+      toast.error("Failed to copy roadmap.");
+    }
   };
 
   /* ================= RESET ================= */
@@ -75,12 +87,17 @@ export default function CareerRoadmap() {
     setRoadmap("");
     setGoal("");
     setLevel("Beginner");
+
+    toast.success("Roadmap reset successfully.");
   };
 
   /* ================= DOWNLOAD ================= */
 
   const handleDownload = () => {
-    if (!roadmap) return;
+    if (!roadmap) {
+      toast.error("No roadmap available.");
+      return;
+    }
 
     downloadReport(
       "Career Roadmap",
@@ -95,7 +112,10 @@ export default function CareerRoadmap() {
   /* ================= PRINT ================= */
 
   const handlePrint = () => {
-    if (!roadmap) return;
+    if (!roadmap) {
+      toast.error("No roadmap available.");
+      return;
+    }
 
     printReport(
       "Career Roadmap",
@@ -140,7 +160,7 @@ export default function CareerRoadmap() {
               Tell AI where you want to go.
             </p>
 
-            {/* Career Goal */}
+            {/* ================= CAREER GOAL ================= */}
 
             <input
               type="text"
@@ -154,17 +174,19 @@ export default function CareerRoadmap() {
                   generateRoadmap();
                 }
               }}
-              className="w-full rounded-xl p-4 bg-slate-800 border border-slate-700 text-white mb-6 outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading}
+              className="w-full rounded-xl p-4 bg-slate-800 border border-slate-700 text-white mb-6 outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
             />
 
-            {/* Skill Level */}
+            {/* ================= SKILL LEVEL ================= */}
 
             <select
               value={level}
               onChange={(e) =>
                 setLevel(e.target.value)
               }
-              className="w-full rounded-xl p-4 bg-slate-800 border border-slate-700 text-white outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={loading}
+              className="w-full rounded-xl p-4 bg-slate-800 border border-slate-700 text-white outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
             >
               <option>Beginner</option>
               <option>Intermediate</option>
@@ -219,11 +241,9 @@ export default function CareerRoadmap() {
 
           {loading && (
             <div className="mt-10">
-
               <LoadingCard
                 text="Generating Career Roadmap..."
               />
-
             </div>
           )}
 
@@ -247,11 +267,17 @@ export default function CareerRoadmap() {
                 title="AI Career Roadmap"
               >
 
-                <ReactMarkdown
-                  className="prose prose-lg dark:prose-invert max-w-none"
-                >
-                  {roadmap}
-                </ReactMarkdown>
+                {/* IMPORTANT:
+                    className is on DIV, NOT ReactMarkdown
+                */}
+
+                <div className="prose prose-lg dark:prose-invert max-w-none">
+
+                  <ReactMarkdown>
+                    {roadmap}
+                  </ReactMarkdown>
+
+                </div>
 
               </ReportSection>
 

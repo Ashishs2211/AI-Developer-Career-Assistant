@@ -1,33 +1,95 @@
-const { GoogleGenAI } = require("@google/genai");
+const OpenAI = require("openai");
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+/* =========================================
+   OPENROUTER CLIENT
+========================================= */
+
+const client = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
 });
 
+/* =========================================
+   GENERATE CHAT RESPONSE
+========================================= */
+
 const generateChatResponse = async (message) => {
-  const prompt = `
+  try {
+    const completion = await client.chat.completions.create({
+      model: "openrouter/free",
+
+      messages: [
+        {
+          role: "system",
+          content: `
 You are an AI Career Assistant.
 
-Help users with:
+You help users with:
+
 - Resume Review
-- MERN Stack
+- MERN Stack Development
 - Java
 - DSA
 - Interview Preparation
 - Career Guidance
-- GitHub
-- Projects
+- GitHub Projects
+- Web Development
+- Programming
 
-Question:
-${message}
-`;
+Give clear, helpful, practical answers.
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3.5-flash-lite",
-    contents: prompt,
-  });
+Use proper headings and bullet points when useful.
+Do not return safety classifications.
+`,
+        },
+        {
+          role: "user",
+          content: message,
+        },
+      ],
 
-  return response.text;
+      temperature: 0.7,
+
+      max_tokens: 1000,
+    });
+
+    const response =
+      completion?.choices?.[0]?.message?.content?.trim();
+
+    if (!response) {
+      const error = new Error(
+        "AI returned an empty response."
+      );
+
+      error.status = 502;
+
+      throw error;
+    }
+
+    return response;
+
+  } catch (error) {
+
+    console.error(
+      "========== CHAT AI ERROR =========="
+    );
+
+    console.error(
+      "Status:",
+      error?.status || error?.response?.status
+    );
+
+    console.error(
+      "Message:",
+      error?.message
+    );
+
+    console.error(
+      "=================================="
+    );
+
+    throw error;
+  }
 };
 
 module.exports = {
