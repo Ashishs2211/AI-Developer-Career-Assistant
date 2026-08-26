@@ -1,11 +1,25 @@
 const OpenAI = require("openai");
 
+
+/* =========================================
+   OPENROUTER CLIENT
+========================================= */
+
 const client = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY,
   baseURL: "https://openrouter.ai/api/v1",
 });
 
-async function generateInterview(role, experience) {
+
+/* =========================================
+   GENERATE MOCK INTERVIEW
+========================================= */
+
+async function generateInterview(
+  role,
+  experience
+) {
+
   const prompt = `
 You are a Senior Technical Interviewer.
 
@@ -17,7 +31,7 @@ ${role}
 Experience:
 ${experience}
 
-Return the response in this format:
+Return the response ONLY in this format:
 
 # Interview Level
 
@@ -46,93 +60,222 @@ Give 2 HR/behavioral questions.
 # Tips Before Interview
 
 Give 5 practical interview preparation tips.
+
+Important:
+Make the questions appropriate for the specified job role and experience level.
 `;
 
-  try {
-    const completion =
-      await client.chat.completions.create({
-        model: "openrouter/free",
 
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
+  /* =========================================
+     RETRY CONFIGURATION
+  ========================================= */
 
-        temperature: 0.7,
+  const delays = [
+    2000,
+    5000,
+    10000,
+  ];
 
-        max_tokens: 1500,
-      });
+  let lastError = null;
 
-    const result =
-      completion?.choices?.[0]?.message?.content;
 
-    if (!result) {
-      const error = new Error(
-        "AI returned an empty response."
+  /* =========================================
+     AI REQUEST
+  ========================================= */
+
+  for (
+    let attempt = 0;
+    attempt < 3;
+    attempt++
+  ) {
+
+    try {
+
+      console.log(
+        `OpenRouter Interview Request - Attempt ${
+          attempt + 1
+        }/3`
       );
 
-      error.status = 502;
 
-      throw error;
-    }
+      const completion =
+        await client.chat.completions.create({
 
-    return result;
+          model: "openrouter/free",
 
-  } catch (error) {
+          messages: [
+            {
+              role: "user",
+              content: prompt,
+            },
+          ],
 
-    console.error(
-      "OpenRouter Interview Error:",
-      error?.status,
-      error?.message
-    );
+          temperature: 0.7,
 
-    /* ================= 429 ================= */
+          max_tokens: 1500,
 
-    if (
-      error?.status === 429 ||
-      error?.response?.status === 429
-    ) {
-      const rateLimitError = new Error(
-        "AI service is temporarily rate limited. Please wait a little and try again."
+        });
+
+
+      /* ===============================
+         CHECK RESPONSE
+      =============================== */
+
+      const result =
+        completion?.choices?.[0]?.message?.content;
+
+
+      if (!result) {
+
+        const error =
+          new Error(
+            "AI returned an empty response."
+          );
+
+        error.status = 502;
+
+        throw error;
+      }
+
+
+      console.log(
+        "Mock interview generated successfully."
       );
 
-      rateLimitError.status = 429;
 
-      throw rateLimitError;
-    }
+      return result;
 
-    /* ================= 401 ================= */
 
-    if (
-      error?.status === 401 ||
-      error?.response?.status === 401
-    ) {
-      const authError = new Error(
-        "OpenRouter API key is invalid or missing."
+    } catch (error) {
+
+      lastError = error;
+
+
+      const status =
+        error?.status ||
+        error?.response?.status;
+
+
+      console.error(
+        "========== INTERVIEW AI ERROR =========="
       );
 
-      authError.status = 401;
+      console.error(
+        "Attempt:",
+        `${attempt + 1}/3`
+      );
 
-      throw authError;
+      console.error(
+        "Status:",
+        status
+      );
+
+      console.error(
+        "Message:",
+        error?.message
+      );
+
+      console.error(
+        "========================================"
+      );
+
+
+      /* ===============================
+         RATE LIMIT
+      =============================== */
+
+      if (status === 429) {
+
+        if (attempt < 2) {
+
+          const delay =
+            delays[attempt];
+
+          console.log(
+            `AI provider rate limited. Retrying in ${
+              delay / 1000
+            } seconds...`
+          );
+
+
+          await new Promise(
+            (resolve) =>
+              setTimeout(resolve, delay)
+          );
+
+
+          continue;
+        }
+
+
+        const rateLimitError =
+          new Error(
+            "AI service is temporarily rate limited. Please wait a little and try again."
+          );
+
+        rateLimitError.status = 429;
+
+        throw rateLimitError;
+      }
+
+
+      /* ===============================
+         INVALID API KEY
+      =============================== */
+
+      if (status === 401) {
+
+        const authError =
+          new Error(
+            "OpenRouter API key is invalid or missing."
+          );
+
+        authError.status = 401;
+
+        throw authError;
+      }
+
+
+      /* ===============================
+         OTHER ERRORS
+      =============================== */
+
+      const serverError =
+        new Error(
+          error?.message ||
+            "Failed to generate interview."
+        );
+
+      serverError.status =
+        status || 500;
+
+      throw serverError;
     }
+  }
 
-    /* ================= OTHER ERRORS ================= */
 
-    const serverError = new Error(
-      error?.message ||
+  /* =========================================
+     FINAL FALLBACK
+  ========================================= */
+
+  const finalError =
+    new Error(
+      lastError?.message ||
         "Failed to generate interview."
     );
 
-    serverError.status =
-      error?.status ||
-      error?.response?.status ||
-      500;
+  finalError.status =
+    lastError?.status ||
+    lastError?.response?.status ||
+    500;
 
-    throw serverError;
-  }
+  throw finalError;
 }
+
+
+/* =========================================
+   EXPORT
+========================================= */
 
 module.exports = {
   generateInterview,
