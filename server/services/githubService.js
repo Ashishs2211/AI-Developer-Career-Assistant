@@ -1,7 +1,6 @@
 const axios = require("axios");
 const OpenAI = require("openai");
 
-
 /* =========================================
    OPENROUTER CLIENT
 ========================================= */
@@ -11,14 +10,12 @@ const client = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
 });
 
-
 /* =========================================
    FETCH GITHUB REPOSITORY
 ========================================= */
 
 async function fetchRepository(repoUrl) {
   try {
-
     if (!repoUrl) {
       const error = new Error(
         "GitHub repository URL is required."
@@ -29,18 +26,13 @@ async function fetchRepository(repoUrl) {
       throw error;
     }
 
-
     /* ===============================
        CLEAN URL
     =============================== */
 
     let cleanUrl = repoUrl.trim();
 
-    cleanUrl = cleanUrl.replace(
-      /\/+$/,
-      ""
-    );
-
+    cleanUrl = cleanUrl.replace(/\/+$/, "");
 
     /* ===============================
        VALIDATE URL
@@ -49,12 +41,9 @@ async function fetchRepository(repoUrl) {
     const githubPattern =
       /^https?:\/\/github\.com\/([^/]+)\/([^/]+)$/;
 
-    const match =
-      cleanUrl.match(githubPattern);
-
+    const match = cleanUrl.match(githubPattern);
 
     if (!match) {
-
       const error = new Error(
         "Invalid GitHub repository URL. Example: https://github.com/username/repository"
       );
@@ -64,10 +53,8 @@ async function fetchRepository(repoUrl) {
       throw error;
     }
 
-
     const owner = match[1];
     const repo = match[2];
-
 
     /* ===============================
        FETCH REPOSITORY
@@ -77,26 +64,21 @@ async function fetchRepository(repoUrl) {
       `https://api.github.com/repos/${owner}/${repo}`,
       {
         headers: {
-          Accept:
-            "application/vnd.github+json",
+          Accept: "application/vnd.github+json",
         },
       }
     );
 
-
     return response.data;
 
-
   } catch (error) {
-
     console.error(
       "========== GITHUB FETCH ERROR =========="
     );
 
     console.error(
       "Status:",
-      error?.response?.status ||
-        error?.status
+      error?.response?.status || error?.status
     );
 
     console.error(
@@ -108,44 +90,33 @@ async function fetchRepository(repoUrl) {
       "========================================"
     );
 
-
     /* ===============================
        REPOSITORY NOT FOUND
     =============================== */
 
-    if (
-      error?.response?.status === 404
-    ) {
-
-      const notFoundError =
-        new Error(
-          "GitHub repository not found. Make sure the repository is public and the URL is correct."
-        );
+    if (error?.response?.status === 404) {
+      const notFoundError = new Error(
+        "GitHub repository not found. Make sure the repository is public and the URL is correct."
+      );
 
       notFoundError.status = 404;
 
       throw notFoundError;
     }
 
-
     /* ===============================
        GITHUB RATE LIMIT
     =============================== */
 
-    if (
-      error?.response?.status === 403
-    ) {
-
-      const githubLimitError =
-        new Error(
-          "GitHub API rate limit reached. Please try again later."
-        );
+    if (error?.response?.status === 403) {
+      const githubLimitError = new Error(
+        "GitHub API rate limit reached. Please try again later."
+      );
 
       githubLimitError.status = 429;
 
       throw githubLimitError;
     }
-
 
     /* ===============================
        KEEP CUSTOM ERROR
@@ -155,31 +126,26 @@ async function fetchRepository(repoUrl) {
       throw error;
     }
 
-
-    const githubError =
-      new Error(
-        "Unable to fetch GitHub repository."
-      );
+    const githubError = new Error(
+      "Unable to fetch GitHub repository."
+    );
 
     githubError.status =
-      error?.response?.status ||
-      500;
+      error?.response?.status || 500;
 
     throw githubError;
   }
 }
-
 
 /* =========================================
    ANALYZE GITHUB REPOSITORY
 ========================================= */
 
 async function analyzeRepository(repo) {
-
   const prompt = `
 You are a Senior Software Architect.
 
-Analyze this GitHub repository.
+Analyze this GitHub repository using ONLY the repository information provided below.
 
 Repository Name:
 ${repo.name}
@@ -208,12 +174,22 @@ ${repo.created_at}
 Last Updated:
 ${repo.updated_at}
 
-Return the response ONLY in this format:
+IMPORTANT INSTRUCTIONS:
+
+- Provide a COMPLETE repository analysis.
+- Do NOT return only a safety message.
+- Do NOT return "User Safety: safe".
+- Do NOT mention content moderation or safety classification.
+- Return meaningful technical analysis.
+- Base the analysis ONLY on the repository information provided.
+- Do NOT invent technologies or features.
+
+Return the response EXACTLY in this format:
 
 # AI GitHub Repository Analysis
 
 ## Repository Score
-<score>/100
+Give a score out of 100 and a brief explanation.
 
 ## Strengths
 - Point 1
@@ -249,51 +225,39 @@ Return the response ONLY in this format:
 1. Question 1
 2. Question 2
 3. Question 3
-
-Important:
-Base the analysis only on the repository information provided above.
-Do not invent technologies or features that are not provided.
 `;
 
-
-  /* =========================================
-     RETRY CONFIGURATION
-  ========================================= */
-
-  const delays = [
-    2000,
-    5000,
-    10000,
-  ];
+  const delays = [2000, 5000, 10000];
 
   let lastError = null;
 
+  /* ===============================
+     AI REQUEST WITH RETRY
+  =============================== */
 
-  /* =========================================
-     AI REQUEST
-  ========================================= */
-
-  for (
-    let attempt = 0;
-    attempt < 3;
-    attempt++
-  ) {
-
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
-
       console.log(
-        `OpenRouter GitHub Analysis Request - Attempt ${
-          attempt + 1
-        }/3`
+        `OpenRouter GitHub Analysis Request - Attempt ${attempt + 1}/3`
       );
-
 
       const completion =
         await client.chat.completions.create({
-
           model: "openrouter/free",
 
           messages: [
+            {
+              role: "system",
+              content: `
+You are a Senior Software Architect.
+
+Your job is to provide detailed, structured, useful technical analysis.
+
+Always follow the requested output format.
+
+Never return only a safety classification or a short safety message.
+              `,
+            },
             {
               role: "user",
               content: prompt,
@@ -302,49 +266,71 @@ Do not invent technologies or features that are not provided.
 
           temperature: 0.7,
 
-          max_tokens: 1500,
-
+          max_tokens: 2000,
         });
 
+      const result =
+        completion?.choices?.[0]?.message?.content?.trim();
 
       /* ===============================
-         CHECK RESPONSE
+         CHECK EMPTY RESPONSE
       =============================== */
 
-      const result =
-        completion?.choices?.[0]?.message?.content;
-
-
       if (!result) {
-
-        const error =
-          new Error(
-            "AI returned an empty response."
-          );
+        const error = new Error(
+          "AI returned an empty response."
+        );
 
         error.status = 502;
 
         throw error;
       }
 
+      /* ===============================
+         CHECK INCOMPLETE RESPONSE
+      =============================== */
+
+      const isTooShort =
+        result.length < 300;
+
+      const isSafetyResponse =
+        result.toLowerCase().includes("user safety");
+
+      const hasScore =
+        result.toLowerCase().includes(
+          "repository score"
+        );
+
+      if (
+        isTooShort ||
+        isSafetyResponse ||
+        !hasScore
+      ) {
+        const error = new Error(
+          "AI returned an incomplete repository analysis."
+        );
+
+        error.status = 502;
+
+        throw error;
+      }
+
+      /* ===============================
+         SUCCESS
+      =============================== */
 
       console.log(
         "GitHub AI analysis generated successfully."
       );
 
-
       return result;
 
-
     } catch (error) {
-
       lastError = error;
-
 
       const status =
         error?.status ||
         error?.response?.status;
-
 
       console.error(
         "========== GITHUB AI ERROR =========="
@@ -369,72 +355,60 @@ Do not invent technologies or features that are not provided.
         "====================================="
       );
 
-
-      /* ===============================
-         RATE LIMIT
-      =============================== */
-
-      if (status === 429) {
-
-        if (attempt < 2) {
-
-          const delay =
-            delays[attempt];
-
-          console.log(
-            `AI provider rate limited. Retrying in ${
-              delay / 1000
-            } seconds...`
-          );
-
-
-          await new Promise(
-            (resolve) =>
-              setTimeout(resolve, delay)
-          );
-
-
-          continue;
-        }
-
-
-        const rateLimitError =
-          new Error(
-            "AI service is temporarily rate limited. Please wait and try again."
-          );
-
-        rateLimitError.status = 429;
-
-        throw rateLimitError;
-      }
-
-
       /* ===============================
          INVALID API KEY
       =============================== */
 
       if (status === 401) {
-
-        const authError =
-          new Error(
-            "OpenRouter API key is invalid or missing."
-          );
+        const authError = new Error(
+          "OpenRouter API key is invalid or missing."
+        );
 
         authError.status = 401;
 
         throw authError;
       }
 
-
       /* ===============================
-         OTHER ERROR
+         RETRY
       =============================== */
 
-      const serverError =
-        new Error(
-          error?.message ||
-            "Failed to analyze GitHub repository."
+      if (attempt < 2) {
+        const delay = delays[attempt];
+
+        console.log(
+          `Retrying AI request in ${delay / 1000} seconds...`
         );
+
+        await new Promise((resolve) =>
+          setTimeout(resolve, delay)
+        );
+
+        continue;
+      }
+
+      /* ===============================
+         RATE LIMIT
+      =============================== */
+
+      if (status === 429) {
+        const rateLimitError = new Error(
+          "AI service is temporarily rate limited. Please wait and try again."
+        );
+
+        rateLimitError.status = 429;
+
+        throw rateLimitError;
+      }
+
+      /* ===============================
+         OTHER ERRORS
+      =============================== */
+
+      const serverError = new Error(
+        error?.message ||
+        "Failed to analyze GitHub repository."
+      );
 
       serverError.status =
         status || 500;
@@ -443,16 +417,14 @@ Do not invent technologies or features that are not provided.
     }
   }
 
-
-  /* =========================================
+  /* ===============================
      FINAL FALLBACK
-  ========================================= */
+  =============================== */
 
-  const finalError =
-    new Error(
-      lastError?.message ||
-        "Failed to analyze GitHub repository."
-    );
+  const finalError = new Error(
+    lastError?.message ||
+    "Failed to generate complete GitHub analysis."
+  );
 
   finalError.status =
     lastError?.status ||
@@ -461,7 +433,6 @@ Do not invent technologies or features that are not provided.
 
   throw finalError;
 }
-
 
 /* =========================================
    EXPORTS

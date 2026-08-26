@@ -24,9 +24,7 @@ export default function GithubAnalyzer() {
 
   const analyzeRepo = async () => {
     if (!repoUrl.trim()) {
-      toast.error(
-        "Please enter a GitHub Repository URL."
-      );
+      toast.error("Please enter a GitHub Repository URL.");
       return;
     }
 
@@ -47,11 +45,11 @@ export default function GithubAnalyzer() {
       );
 
     } catch (err) {
-      console.log(err);
+      console.error("GitHub Analysis Error:", err);
 
       toast.error(
         err.response?.data?.message ||
-          "Analysis Failed"
+        "Analysis Failed"
       );
 
     } finally {
@@ -59,10 +57,14 @@ export default function GithubAnalyzer() {
     }
   };
 
+
   /* ================= COPY ================= */
 
   const handleCopy = () => {
-    if (!result?.analysis) return;
+    if (!result?.analysis) {
+      toast.error("No report available to copy.");
+      return;
+    }
 
     navigator.clipboard.writeText(
       result.analysis
@@ -73,6 +75,7 @@ export default function GithubAnalyzer() {
     );
   };
 
+
   /* ================= RESET ================= */
 
   const handleReset = () => {
@@ -80,10 +83,14 @@ export default function GithubAnalyzer() {
     setRepoUrl("");
   };
 
+
   /* ================= DOWNLOAD ================= */
 
   const handleDownload = () => {
-    if (!result?.analysis) return;
+    if (!result?.analysis) {
+      toast.error("No report available.");
+      return;
+    }
 
     downloadReport(
       "GitHub Repository Analysis",
@@ -95,10 +102,14 @@ export default function GithubAnalyzer() {
     );
   };
 
+
   /* ================= PRINT ================= */
 
   const handlePrint = () => {
-    if (!result?.analysis) return;
+    if (!result?.analysis) {
+      toast.error("No report available.");
+      return;
+    }
 
     printReport(
       "GitHub Repository Analysis",
@@ -109,6 +120,7 @@ export default function GithubAnalyzer() {
       "Opening Print Preview..."
     );
   };
+
 
   return (
     <DashboardLayout>
@@ -130,6 +142,7 @@ export default function GithubAnalyzer() {
               "🚀 Scalability",
             ]}
           />
+
 
           {/* ================= REPOSITORY INPUT ================= */}
 
@@ -157,6 +170,7 @@ export default function GithubAnalyzer() {
               }}
               className="w-full rounded-xl p-4 bg-slate-800 border border-slate-700 text-white outline-none focus:ring-2 focus:ring-green-500"
             />
+
 
             {/* ================= FEATURES ================= */}
 
@@ -188,6 +202,7 @@ export default function GithubAnalyzer() {
 
             </div>
 
+
             {/* ================= ANALYZE BUTTON ================= */}
 
             <button
@@ -202,17 +217,17 @@ export default function GithubAnalyzer() {
 
           </div>
 
+
           {/* ================= LOADING ================= */}
 
           {loading && (
             <div className="mt-10">
-
               <LoadingCard
                 text="Analyzing Repository..."
               />
-
             </div>
           )}
+
 
           {/* ================= EMPTY STATE ================= */}
 
@@ -223,6 +238,7 @@ export default function GithubAnalyzer() {
               description="Paste a GitHub repository URL and let AI review it."
             />
           )}
+
 
           {/* ================= RESULT ================= */}
 
@@ -236,53 +252,54 @@ export default function GithubAnalyzer() {
                 title="Repository Information"
               >
 
-                <div className="space-y-4">
+                <div className="space-y-4 text-slate-200">
 
                   <p>
                     <strong>Name:</strong>{" "}
-                    {result.repository?.name ||
-                      "N/A"}
+                    {result.repository?.name || "N/A"}
                   </p>
 
                   <p>
                     <strong>Owner:</strong>{" "}
-                    {result.repository?.owner ||
-                      "N/A"}
+                    {result.repository?.owner || "N/A"}
                   </p>
 
                   <p>
                     <strong>Language:</strong>{" "}
-                    {result.repository?.language ||
-                      "N/A"}
+                    {result.repository?.language || "N/A"}
                   </p>
 
                   <p>
                     <strong>Stars:</strong>{" "}
-                    ⭐{" "}
-                    {result.repository?.stars ??
-                      0}
+                    ⭐ {result.repository?.stars ?? 0}
                   </p>
 
                 </div>
 
               </ReportSection>
 
-              {/* AI Analysis */}
+
+              {/* ================= AI ANALYSIS ================= */}
 
               <ReportSection
                 icon="🤖"
                 title="AI Repository Analysis"
               >
 
-                <ReactMarkdown
-                  className="prose prose-lg dark:prose-invert max-w-none"
-                >
-                  {result.analysis}
-                </ReactMarkdown>
+                {/* FIX: className is on div, not ReactMarkdown */}
+
+                <div className="prose prose-lg dark:prose-invert max-w-none">
+
+                  <ReactMarkdown>
+                    {result.analysis || ""}
+                  </ReactMarkdown>
+
+                </div>
 
               </ReportSection>
 
-              {/* Actions */}
+
+              {/* ================= ACTION BUTTONS ================= */}
 
               <ActionButtons
                 onDownload={handleDownload}

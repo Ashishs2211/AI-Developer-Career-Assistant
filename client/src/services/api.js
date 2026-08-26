@@ -2,8 +2,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const api = axios.create({
-  baseURL:
-    "https://ai-developer-career-assistant-backend.onrender.com/api",
+  baseURL: import.meta.env.VITE_API_URL,
   timeout: 60000,
 });
 
@@ -47,7 +46,7 @@ api.interceptors.response.use(
     if (!error.response) {
 
       toast.error(
-        "Unable to connect to the server. Please check your internet connection."
+        "Unable to connect to the server."
       );
 
       return Promise.reject(error);
@@ -69,7 +68,6 @@ api.interceptors.response.use(
         "Your session has expired. Please login again."
       );
 
-      // Don't redirect immediately if already on login/register
       if (
         window.location.pathname !== "/login" &&
         window.location.pathname !== "/register"
@@ -103,7 +101,7 @@ api.interceptors.response.use(
 
       toast.error(
         error.response?.data?.message ||
-          "Requested resource was not found."
+        "Requested resource was not found."
       );
 
       return Promise.reject(error);
@@ -111,12 +109,18 @@ api.interceptors.response.use(
 
 
     /* ===============================
-       500 — SERVER ERROR
+       SERVER ERROR
     =============================== */
 
     if (status >= 500) {
 
+      console.error(
+        "Server Error:",
+        error.response?.data
+      );
+
       toast.error(
+        error.response?.data?.message ||
         "Server error. Please try again later."
       );
 
@@ -125,7 +129,7 @@ api.interceptors.response.use(
 
 
     /* ===============================
-       OTHER API ERRORS
+       OTHER ERRORS
     =============================== */
 
     if (error.response?.data?.message) {
