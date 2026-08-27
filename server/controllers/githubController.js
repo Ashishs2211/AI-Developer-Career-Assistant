@@ -126,7 +126,7 @@ const analyzeGithubRepo = async (req, res) => {
 
       message:
         error?.message ||
-        "GitHub Repository Analysis Failed",
+        "Unable to analyze the GitHub repository. Please try again.",
 
     });
 

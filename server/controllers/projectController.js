@@ -168,7 +168,7 @@ const uploadProject = async (req, res) => {
 
       message:
         error?.message ||
-        "Project Review Failed",
+        "Unable to review the project. Please try again.",
 
     });
 

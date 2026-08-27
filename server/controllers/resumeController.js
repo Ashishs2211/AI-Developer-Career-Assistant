@@ -5,8 +5,9 @@ const { analyzeResume } = require("../services/geminiService");
 const History = require("../models/History");
 
 const uploadResume = async (req, res) => {
-  try {
+  let filePath = null;
 
+  try {
     /* ===============================
        CHECK FILE
     =============================== */
@@ -14,37 +15,37 @@ const uploadResume = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         success: false,
-        message: "Please upload a PDF file",
+        message: "Please upload a PDF resume file.",
       });
     }
 
+    filePath = req.file.path;
 
     /* ===============================
        READ PDF
     =============================== */
 
-    const fileBuffer = fs.readFileSync(
-      req.file.path
-    );
-
+    const fileBuffer = fs.readFileSync(filePath);
 
     /* ===============================
        EXTRACT TEXT
     =============================== */
 
-    const pdfData =
-      await pdfParse(fileBuffer);
+    const pdfData = await pdfParse(fileBuffer);
 
+    if (!pdfData.text || !pdfData.text.trim()) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "No readable text was found in this PDF. Please upload a valid text-based resume PDF.",
+      });
+    }
 
     /* ===============================
        AI ANALYSIS
     =============================== */
 
-    const aiResponse =
-      await analyzeResume(
-        pdfData.text
-      );
-
+    const aiResponse = await analyzeResume(pdfData.text);
 
     /* ===============================
        SAVE HISTORY
@@ -57,57 +58,51 @@ const uploadResume = async (req, res) => {
       result: aiResponse,
     });
 
-
-    /* ===============================
-       DELETE TEMP FILE
-    =============================== */
-
-    if (fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-
-
     /* ===============================
        SUCCESS
     =============================== */
 
     return res.status(200).json({
       success: true,
-      message:
-        "Resume analyzed successfully",
+      message: "Resume analyzed successfully.",
       analysis: aiResponse,
     });
 
   } catch (error) {
 
-    console.error(
-      "========== Resume Upload Error =========="
-    );
-
-    console.error(error);
-    console.error(error.stack);
-
-
-    /* ===============================
-       ERROR STATUS
-    =============================== */
+    console.error("========== RESUME CONTROLLER ERROR ==========");
+    console.error("Status:", error?.status || error?.response?.status);
+    console.error("Message:", error?.message);
+    console.error("=============================================");
 
     const statusCode =
-      error.status ||
-      error.response?.status ||
+      error?.status ||
+      error?.response?.status ||
       500;
-
-
-    /* ===============================
-       ERROR RESPONSE
-    =============================== */
 
     return res.status(statusCode).json({
       success: false,
       message:
-        error.message ||
-        "Resume Analysis Failed",
+        error?.message ||
+        "Unable to analyze the resume. Please try again.",
     });
+
+  } finally {
+
+    /* ===============================
+       DELETE TEMP FILE
+    =============================== */
+
+    if (filePath && fs.existsSync(filePath)) {
+      try {
+        fs.unlinkSync(filePath);
+      } catch (deleteError) {
+        console.error(
+          "Unable to delete temporary PDF:",
+          deleteError.message
+        );
+      }
+    }
   }
 };
 

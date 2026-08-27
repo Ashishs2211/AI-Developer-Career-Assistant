@@ -4,65 +4,99 @@ const {
 
 const History = require("../models/History");
 
-const startInterview = async (req, res) => {
+
+/* =========================================
+   START MOCK INTERVIEW
+========================================= */
+
+const startInterview = async (
+  req,
+  res,
+  next
+) => {
+
   try {
+
     const {
       role,
       experience,
     } = req.body;
 
-    /* ================= VALIDATION ================= */
 
-    if (!role || !experience) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Role and experience are required.",
-      });
+    /* ===============================
+       VALIDATION
+    =============================== */
+
+    if (
+      !role ||
+      !role.trim() ||
+      !experience
+    ) {
+
+      const error = new Error(
+        "Role and experience are required."
+      );
+
+      error.status = 400;
+
+      throw error;
+
     }
 
-    /* ================= AI GENERATION ================= */
+
+    /* ===============================
+       AI GENERATION
+    =============================== */
 
     const interview =
       await generateInterview(
-        role,
+        role.trim(),
         experience
       );
 
-    /* ================= SAVE HISTORY ================= */
+
+    /* ===============================
+       SAVE HISTORY
+    =============================== */
 
     await History.create({
+
       user: req.user.userId,
+
       type: "interview",
-      title: `${role} (${experience})`,
+
+      title: `${role.trim()} (${experience})`,
+
       result: interview,
+
     });
 
-    /* ================= SUCCESS ================= */
+
+    /* ===============================
+       SUCCESS RESPONSE
+    =============================== */
 
     return res.status(200).json({
+
       success: true,
+
       interview,
+
     });
+
 
   } catch (error) {
 
-    console.error(
-      "Interview Controller Error:",
-      error
-    );
+    /* ===============================
+       SEND TO GLOBAL ERROR HANDLER
+    =============================== */
 
-    const statusCode =
-      error.status || 500;
+    next(error);
 
-    return res.status(statusCode).json({
-      success: false,
-      message:
-        error.message ||
-        "Interview Generation Failed",
-    });
   }
+
 };
+
 
 module.exports = {
   startInterview,

@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
-  timeout: 120000,
+  timeout: 60000,
 });
 
 /* =========================================
@@ -20,71 +20,62 @@ api.interceptors.request.use(
 
     return config;
   },
-
   (error) => {
     return Promise.reject(error);
   }
 );
-
 
 /* =========================================
    RESPONSE INTERCEPTOR
 ========================================= */
 
 api.interceptors.response.use(
-
-  (response) => {
-    return response;
-  },
+  (response) => response,
 
   (error) => {
-
     /* ===============================
        NO RESPONSE FROM SERVER
     =============================== */
 
     if (!error.response) {
-
-      toast.error(
-        "Unable to connect to the server."
-      );
-
+      toast.error("Unable to connect to the server.");
       return Promise.reject(error);
     }
 
-
     const status = error.response.status;
 
-
     /* ===============================
-       401 — UNAUTHORIZED
+       401 — SESSION EXPIRED
     =============================== */
 
     if (status === 401) {
-
+      // Remove invalid/expired authentication data
       localStorage.removeItem("token");
+      localStorage.removeItem("user");
 
-      toast.error(
-        "Your session has expired. Please login again."
-      );
+      // Prevent toast/redirect loop
+      const currentPath = window.location.pathname;
 
       if (
-        window.location.pathname !== "/login" &&
-        window.location.pathname !== "/register"
+        currentPath !== "/login" &&
+        currentPath !== "/register"
       ) {
+        toast.error(
+          "Your session has expired. Please login again."
+        );
+
+        // Redirect to login
         window.location.href = "/login";
       }
 
       return Promise.reject(error);
     }
 
-
     /* ===============================
        403 — FORBIDDEN
     =============================== */
 
     if (status === 403) {
-
       toast.error(
         "You don't have permission to perform this action."
       );
@@ -92,28 +83,24 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
-
     /* ===============================
        404 — NOT FOUND
     =============================== */
 
     if (status === 404) {
-
       toast.error(
         error.response?.data?.message ||
-        "Requested resource was not found."
+          "Requested resource was not found."
       );
 
       return Promise.reject(error);
     }
-
 
     /* ===============================
        SERVER ERROR
     =============================== */
 
     if (status >= 500) {
-
       console.error(
         "Server Error:",
         error.response?.data
@@ -121,19 +108,17 @@ api.interceptors.response.use(
 
       toast.error(
         error.response?.data?.message ||
-        "Server error. Please try again later."
+          "Server error. Please try again later."
       );
 
       return Promise.reject(error);
     }
-
 
     /* ===============================
        OTHER ERRORS
     =============================== */
 
     if (error.response?.data?.message) {
-
       toast.error(
         error.response.data.message
       );

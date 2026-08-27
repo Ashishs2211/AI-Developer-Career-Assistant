@@ -5,23 +5,41 @@ const {
 const History = require("../models/History");
 
 
-const chatWithAI = async (req, res) => {
+/* =========================================
+   CHAT WITH AI
+========================================= */
+
+const chatWithAI = async (
+  req,
+  res,
+  next
+) => {
+
   try {
 
     const { message } = req.body;
 
+
+    /* ===============================
+       VALIDATION
+    =============================== */
+
     if (!message || !message.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: "Message is required.",
-      });
+
+      const error = new Error(
+        "Message is required."
+      );
+
+      error.status = 400;
+
+      throw error;
+
     }
 
 
-    console.log(
-      "Generating AI chat response..."
-    );
-
+    /* ===============================
+       GENERATE AI RESPONSE
+    =============================== */
 
     const reply =
       await generateChatResponse(
@@ -29,40 +47,48 @@ const chatWithAI = async (req, res) => {
       );
 
 
-    console.log(
-      "AI chat response generated successfully."
-    );
-
+    /* ===============================
+       SAVE HISTORY
+    =============================== */
 
     await History.create({
+
       user: req.user.userId,
+
       type: "chat",
-      title: message.substring(0, 50),
+
+      title: message
+        .trim()
+        .substring(0, 50),
+
       result: reply,
+
     });
 
+
+    /* ===============================
+       SUCCESS RESPONSE
+    =============================== */
 
     return res.status(200).json({
+
       success: true,
+
       reply,
+
     });
+
 
   } catch (error) {
 
-    console.error(
-      "CHAT CONTROLLER ERROR:",
-      error.message
-    );
+    /* ===============================
+       SEND ERROR TO GLOBAL HANDLER
+    =============================== */
 
-    return res.status(
-      error.status || 500
-    ).json({
-      success: false,
-      message:
-        error.message ||
-        "Failed to generate AI response.",
-    });
+    next(error);
+
   }
+
 };
 
 

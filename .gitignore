@@ -3,6 +3,8 @@ node_modules/
 
 # Environment Variables
 .env
+server/.env
+client/.env
 
 # Build Folder
 dist/
