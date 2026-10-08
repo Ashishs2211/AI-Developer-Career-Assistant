@@ -7,125 +7,214 @@ import {
   FaRoad,
   FaHistory,
   FaComments,
+  FaArrowRight,
 } from "react-icons/fa";
-
 import { motion } from "framer-motion";
 
 const actions = [
   {
     title: "Resume Analyzer",
-    description: "Analyze your resume with AI",
-    icon: <FaFileAlt />,
-    color: "bg-blue-600",
-    link: "/resume-analyzer",
+    description: "Optimize your resume with AI",
+    icon: FaFileAlt,
+    path: "/resume-analyzer",
+    iconBg: "bg-blue-500/10",
+    iconColor: "text-blue-500",
   },
   {
     title: "Project Reviewer",
-    description: "Upload and review your project",
-    icon: <FaProjectDiagram />,
-    color: "bg-orange-500",
-    link: "/project-reviewer",
+    description: "Get AI feedback on projects",
+    icon: FaProjectDiagram,
+    path: "/project-reviewer",
+    iconBg: "bg-orange-500/10",
+    iconColor: "text-orange-500",
   },
   {
     title: "GitHub Analyzer",
-    description: "Analyze your GitHub repository",
-    icon: <FaGithub />,
-    color: "bg-gray-800",
-    link: "/github-analyzer",
+    description: "Analyze your GitHub profile",
+    icon: FaGithub,
+    path: "/github-analyzer",
+    iconBg: "bg-slate-500/10",
+    iconColor: "text-slate-700 dark:text-slate-300",
   },
   {
     title: "Mock Interview",
-    description: "Practice technical interviews",
-    icon: <FaMicrophone />,
-    color: "bg-purple-600",
-    link: "/mock-interview",
+    description: "Practice interviews with AI",
+    icon: FaMicrophone,
+    path: "/mock-interview",
+    iconBg: "bg-purple-500/10",
+    iconColor: "text-purple-500",
   },
   {
     title: "Career Roadmap",
-    description: "Generate your AI learning roadmap",
-    icon: <FaRoad />,
-    color: "bg-green-600",
-    link: "/career-roadmap",
+    description: "Build your personalized roadmap",
+    icon: FaRoad,
+    path: "/career-roadmap",
+    iconBg: "bg-emerald-500/10",
+    iconColor: "text-emerald-500",
   },
   {
     title: "History",
-    description: "View previous AI analyses",
-    icon: <FaHistory />,
-    color: "bg-indigo-600",
-    link: "/history",
+    description: "View your previous analyses",
+    icon: FaHistory,
+    path: "/history",
+    iconBg: "bg-indigo-500/10",
+    iconColor: "text-indigo-500",
   },
   {
-    title: "AI Chat Assistant",
-    description: "Ask AI anything about coding and careers",
-    icon: <FaComments />,
-    color: "bg-cyan-600",
-    link: "/chat",
+    title: "AI Assistant",
+    description: "Ask AI anything about your career",
+    icon: FaComments,
+    path: "/chat",
+    iconBg: "bg-cyan-500/10",
+    iconColor: "text-cyan-500",
   },
 ];
 
 export default function QuickActions() {
   return (
-    <div>
+    <section className="mt-8">
+      {/* Section Header */}
+      <div className="flex items-end justify-between mb-5">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-indigo-500 mb-1">
+            AI Workspace
+          </p>
 
-      <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+            Quick Actions
+          </h2>
 
-        <h2 className="text-2xl md:text-3xl font-bold dark:text-white">
-          🤖 AI Tools
-        </h2>
-
-        <span className="text-gray-500 text-sm">
-          {actions.length} Tools
-        </span>
-
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Choose a tool to accelerate your developer career.
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+      {/* Action Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {actions.map((action, index) => {
+          const Icon = action.icon;
 
-        {actions.map((action) => (
-
-          <motion.div
-            key={action.title}
-            whileHover={{ scale: 1.04, y: -5 }}
-            transition={{ duration: 0.25 }}
-          >
-
-            <Link
-              to={action.link}
-              className="group block bg-white dark:bg-slate-900 rounded-2xl shadow-md hover:shadow-2xl border border-gray-200 dark:border-slate-700 p-6 transition-all duration-300"
+          return (
+            <motion.div
+              key={action.title}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: 0.35,
+                delay: index * 0.05,
+              }}
+              whileHover={{ y: -5 }}
             >
-
-              <div
-                className={`w-16 h-16 ${action.color} rounded-2xl flex items-center justify-center text-white text-3xl mb-5 group-hover:rotate-6 transition-transform duration-300`}
+              <Link
+                to={action.path}
+                className="
+                  group
+                  relative
+                  flex
+                  items-center
+                  gap-4
+                  overflow-hidden
+                  rounded-2xl
+                  border
+                  border-slate-200
+                  dark:border-slate-800
+                  bg-white
+                  dark:bg-slate-900
+                  p-5
+                  shadow-sm
+                  hover:shadow-xl
+                  hover:border-indigo-200
+                  dark:hover:border-indigo-900
+                  transition-all
+                  duration-300
+                "
               >
-                {action.icon}
-              </div>
+                {/* Background Glow */}
+                <div
+                  className="
+                    absolute
+                    -right-10
+                    -top-10
+                    h-24
+                    w-24
+                    rounded-full
+                    bg-indigo-500/5
+                    dark:bg-indigo-500/10
+                    blur-2xl
+                    transition-all
+                    duration-300
+                    group-hover:bg-indigo-500/10
+                    dark:group-hover:bg-indigo-500/20
+                  "
+                />
 
-              <h3 className="text-xl font-bold group-hover:text-blue-600 dark:text-white transition-colors">
-                {action.title}
-              </h3>
+                {/* Icon */}
+                <div
+                  className={`
+                    relative
+                    flex
+                    h-12
+                    w-12
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-xl
+                    ${action.iconBg}
+                    ${action.iconColor}
+                    transition-transform
+                    duration-300
+                    group-hover:scale-110
+                  `}
+                >
+                  <Icon className="text-lg" />
+                </div>
 
-              <p className="text-gray-500 mt-2">
-                {action.description}
-              </p>
+                {/* Text */}
+                <div className="relative min-w-0 flex-1">
+                  <h3 className="font-semibold text-slate-900 dark:text-white">
+                    {action.title}
+                  </h3>
 
-              <div className="mt-5 flex items-center text-blue-600 font-semibold">
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                    {action.description}
+                  </p>
+                </div>
 
-                Open Tool
-
-                <span className="ml-2 group-hover:translate-x-2 transition-transform">
-                  →
-                </span>
-
-              </div>
-
-            </Link>
-
-          </motion.div>
-
-        ))}
-
+                {/* Arrow */}
+                <div
+                  className="
+                    relative
+                    flex
+                    h-8
+                    w-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-lg
+                    text-slate-400
+                    transition-all
+                    duration-300
+                    group-hover:bg-indigo-50
+                    group-hover:text-indigo-600
+                    dark:group-hover:bg-indigo-500/10
+                    dark:group-hover:text-indigo-400
+                  "
+                >
+                  <FaArrowRight
+                    className="
+                      text-xs
+                      transition-transform
+                      duration-300
+                      group-hover:translate-x-0.5
+                    "
+                  />
+                </div>
+              </Link>
+            </motion.div>
+          );
+        })}
       </div>
-
-    </div>
+    </section>
   );
 }

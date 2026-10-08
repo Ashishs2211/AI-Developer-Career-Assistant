@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../services/api";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import toast from "react-hot-toast";
 
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -21,7 +22,9 @@ export default function ResumeAnalyzer() {
   const [analysis, setAnalysis] = useState("");
   const [loading, setLoading] = useState(false);
 
-  /* ================= UPLOAD RESUME ================= */
+  /* =========================================
+     UPLOAD & ANALYZE RESUME
+  ========================================= */
 
   const handleUpload = async () => {
     if (!resume) {
@@ -35,6 +38,7 @@ export default function ResumeAnalyzer() {
 
     try {
       setLoading(true);
+      setAnalysis("");
 
       const response = await api.post(
         "/resume/upload",
@@ -46,45 +50,86 @@ export default function ResumeAnalyzer() {
         }
       );
 
-      setAnalysis(response.data.analysis);
+      const result =
+        response?.data?.analysis || "";
+
+      if (!result.trim()) {
+        toast.error(
+          "No analysis was returned. Please try again."
+        );
+
+        return;
+      }
+
+      setAnalysis(result);
 
       toast.success(
         "Resume analyzed successfully 🎉"
       );
-
     } catch (error) {
-      console.log(error);
-
-      toast.error(
-        error.response?.data?.message ||
-          "Resume Analysis Failed"
+      console.error(
+        "Resume Analyzer Error:",
+        error
       );
 
+      toast.error(
+        error?.response?.data?.message ||
+          "Resume Analysis Failed"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  /* ================= COPY ================= */
+  /* =========================================
+     COPY REPORT
+  ========================================= */
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(analysis);
+  const handleCopy = async () => {
+    if (!analysis) {
+      toast.error("No report available to copy.");
+      return;
+    }
 
-    toast.success(
-      "Report copied successfully"
-    );
+    try {
+      await navigator.clipboard.writeText(
+        analysis
+      );
+
+      toast.success(
+        "Report copied successfully"
+      );
+    } catch (error) {
+      console.error(
+        "Copy Error:",
+        error
+      );
+
+      toast.error(
+        "Unable to copy the report."
+      );
+    }
   };
 
-  /* ================= RESET ================= */
+  /* =========================================
+     RESET
+  ========================================= */
 
   const handleReset = () => {
     setAnalysis("");
     setResume(null);
   };
 
-  /* ================= DOWNLOAD ================= */
+  /* =========================================
+     DOWNLOAD PDF
+  ========================================= */
 
   const handleDownload = () => {
+    if (!analysis) {
+      toast.error("No report available.");
+      return;
+    }
+
     downloadReport(
       "Resume Analysis Report",
       analysis
@@ -95,9 +140,16 @@ export default function ResumeAnalyzer() {
     );
   };
 
-  /* ================= PRINT ================= */
+  /* =========================================
+     PRINT REPORT
+  ========================================= */
 
   const handlePrint = () => {
+    if (!analysis) {
+      toast.error("No report available.");
+      return;
+    }
+
     printReport(
       "Resume Analysis Report",
       analysis
@@ -115,7 +167,9 @@ export default function ResumeAnalyzer() {
 
         <div className="max-w-6xl mx-auto">
 
-          {/* ================= HERO ================= */}
+          {/* =========================================
+              HERO
+          ========================================= */}
 
           <PageHero
             badge="AI Powered ATS Resume Analyzer"
@@ -129,7 +183,9 @@ export default function ResumeAnalyzer() {
             ]}
           />
 
-          {/* ================= UPLOAD CARD ================= */}
+          {/* =========================================
+              UPLOAD CARD
+          ========================================= */}
 
           <div className="mt-10 bg-white/10 backdrop-blur-xl border border-white/10 rounded-3xl shadow-xl p-6 md:p-8">
 
@@ -143,12 +199,19 @@ export default function ResumeAnalyzer() {
 
             <FileUpload
               file={resume}
-              onChange={(e) =>
-                setResume(e.target.files[0])
-              }
+              onChange={(e) => {
+                const file =
+                  e.target.files?.[0];
+
+                if (file) {
+                  setResume(file);
+                }
+              }}
             />
 
-            {/* ================= FEATURES ================= */}
+            {/* =========================================
+                FEATURES
+            ========================================= */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mt-10">
 
@@ -178,7 +241,9 @@ export default function ResumeAnalyzer() {
 
             </div>
 
-            {/* ================= ANALYZE BUTTON ================= */}
+            {/* =========================================
+                ANALYZE BUTTON
+            ========================================= */}
 
             <button
               onClick={handleUpload}
@@ -192,7 +257,9 @@ export default function ResumeAnalyzer() {
 
           </div>
 
-          {/* ================= LOADING ================= */}
+          {/* =========================================
+              LOADING STATE
+          ========================================= */}
 
           {loading && (
             <div className="mt-10">
@@ -204,7 +271,9 @@ export default function ResumeAnalyzer() {
             </div>
           )}
 
-          {/* ================= EMPTY STATE ================= */}
+          {/* =========================================
+              EMPTY STATE
+          ========================================= */}
 
           {!loading && !analysis && (
             <EmptyState
@@ -214,9 +283,11 @@ export default function ResumeAnalyzer() {
             />
           )}
 
-          {/* ================= REPORT ================= */}
+          {/* =========================================
+              REPORT
+          ========================================= */}
 
-          {analysis && (
+          {!loading && analysis && (
             <div className="mt-10">
 
               <ReportSection
@@ -224,15 +295,134 @@ export default function ResumeAnalyzer() {
                 title="AI Resume Report"
               >
 
-                <div className="prose prose-lg dark:prose-invert max-w-none">
-                 <ReactMarkdown>
-                 {analysis}
-                 </ReactMarkdown>
-                 </div>
+                {/* 
+                  IMPORTANT:
+                  No fixed height.
+                  No overflow-hidden.
+                  Complete analysis remains visible.
+                */}
+
+                <div
+                  className="
+                    w-full
+                    max-w-none
+                    overflow-visible
+                    break-words
+                    whitespace-normal
+                    text-slate-200
+                  "
+                >
+
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+
+                      /* =========================
+                         MAIN TITLE
+                      ========================= */
+
+                      h1: ({ children }) => (
+                        <h1 className="text-3xl md:text-4xl font-bold text-white mt-2 mb-8 break-words">
+                          {children}
+                        </h1>
+                      ),
+
+                      /* =========================
+                         SECTION HEADINGS
+                      ========================= */
+
+                      h2: ({ children }) => (
+                        <h2 className="text-2xl md:text-3xl font-bold text-white mt-10 mb-5 pb-2 border-b border-white/10 break-words">
+                          {children}
+                        </h2>
+                      ),
+
+                      h3: ({ children }) => (
+                        <h3 className="text-xl md:text-2xl font-semibold text-white mt-8 mb-4 break-words">
+                          {children}
+                        </h3>
+                      ),
+
+                      /* =========================
+                         PARAGRAPH
+                      ========================= */
+
+                      p: ({ children }) => (
+                        <p className="text-slate-300 leading-8 mb-5 break-words whitespace-normal">
+                          {children}
+                        </p>
+                      ),
+
+                      /* =========================
+                         UNORDERED LIST
+                      ========================= */
+
+                      ul: ({ children }) => (
+                        <ul className="list-disc pl-6 md:pl-8 space-y-3 mb-7 text-slate-300">
+                          {children}
+                        </ul>
+                      ),
+
+                      /* =========================
+                         ORDERED LIST
+                      ========================= */
+
+                      ol: ({ children }) => (
+                        <ol className="list-decimal pl-6 md:pl-8 space-y-4 mb-7 text-slate-300">
+                          {children}
+                        </ol>
+                      ),
+
+                      /* =========================
+                         LIST ITEM
+                      ========================= */
+
+                      li: ({ children }) => (
+                        <li className="leading-7 pl-2 break-words">
+                          {children}
+                        </li>
+                      ),
+
+                      /* =========================
+                         STRONG TEXT
+                      ========================= */
+
+                      strong: ({ children }) => (
+                        <strong className="font-bold text-white">
+                          {children}
+                        </strong>
+                      ),
+
+                      /* =========================
+                         CODE
+                      ========================= */
+
+                      code: ({ children }) => (
+                        <code className="bg-slate-800 text-blue-300 px-2 py-1 rounded-md text-sm break-words">
+                          {children}
+                        </code>
+                      ),
+
+                      /* =========================
+                         HORIZONTAL LINE
+                      ========================= */
+
+                      hr: () => (
+                        <hr className="border-white/10 my-8" />
+                      ),
+
+                    }}
+                  >
+                    {analysis}
+                  </ReactMarkdown>
+
+                </div>
 
               </ReportSection>
 
-              {/* ================= ACTION BUTTONS ================= */}
+              {/* =========================================
+                  ACTION BUTTONS
+              ========================================= */}
 
               <ActionButtons
                 onDownload={handleDownload}

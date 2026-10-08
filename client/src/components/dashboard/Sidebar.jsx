@@ -13,11 +13,11 @@ import {
   FaComments,
   FaBars,
   FaTimes,
+  FaCode,
 } from "react-icons/fa";
 
 export default function Sidebar() {
   const location = useLocation();
-
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
@@ -76,24 +76,53 @@ export default function Sidebar() {
     <>
       {/* ================= MOBILE HEADER ================= */}
 
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-slate-950 text-white h-16 px-4 flex items-center justify-between shadow-lg">
+      <div
+        className="
+          md:hidden
+          fixed top-0 left-0 right-0
+          z-50
+          h-16
+          px-4
+          flex items-center justify-between
+          bg-slate-950
+          text-white
+          border-b border-slate-800
+          shadow-lg
+        "
+      >
+        <div className="flex items-center gap-2">
+          <div
+            className="
+              w-9 h-9
+              rounded-lg
+              bg-indigo-600
+              flex items-center justify-center
+              shadow-md
+            "
+          >
+            <FaCode />
+          </div>
 
-        <h2 className="text-xl font-bold text-blue-500">
-          AI Career
-        </h2>
+          <h2 className="text-lg font-bold">
+            AI Career
+          </h2>
+        </div>
 
         <button
+          type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-lg hover:bg-slate-800 transition"
+          className="
+            p-2.5
+            rounded-xl
+            text-slate-300
+            hover:text-white
+            hover:bg-slate-800
+            transition
+          "
           aria-label="Toggle navigation"
         >
-          {isOpen ? (
-            <FaTimes size={22} />
-          ) : (
-            <FaBars size={22} />
-          )}
+          {isOpen ? <FaTimes size={21} /> : <FaBars size={21} />}
         </button>
-
       </div>
 
       {/* ================= MOBILE OVERLAY ================= */}
@@ -101,7 +130,13 @@ export default function Sidebar() {
       {isOpen && (
         <div
           onClick={() => setIsOpen(false)}
-          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          className="
+            md:hidden
+            fixed inset-0
+            bg-black/60
+            backdrop-blur-sm
+            z-40
+          "
         />
       )}
 
@@ -114,9 +149,10 @@ export default function Sidebar() {
           left-0
           z-50
           w-64
+          min-h-screen
           bg-slate-950
           text-white
-          min-h-screen
+          border-r border-slate-800
           p-5 md:p-6
           transition-transform
           duration-300
@@ -128,87 +164,161 @@ export default function Sidebar() {
           }
         `}
       >
+        {/* ================= LOGO ================= */}
 
-        {/* Logo */}
-
-        <div className="mb-8 px-2">
-
-          <div className="flex items-center justify-between">
+        <div className="mb-9 px-2">
+          <div className="flex items-center gap-3">
+            <div
+              className="
+                w-11 h-11
+                rounded-xl
+                bg-indigo-600
+                flex items-center justify-center
+                shadow-lg shadow-indigo-600/20
+              "
+            >
+              <FaCode className="text-lg" />
+            </div>
 
             <div>
-
-              <h2 className="text-2xl font-bold text-blue-500">
+              <h2 className="text-xl font-bold tracking-tight">
                 AI Career
               </h2>
 
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-400 mt-0.5">
                 Developer Assistant
               </p>
-
             </div>
 
             {/* Mobile Close Button */}
 
             <button
+              type="button"
               onClick={() => setIsOpen(false)}
-              className="md:hidden p-2 rounded-lg hover:bg-slate-800"
+              className="
+                md:hidden
+                ml-auto
+                p-2
+                rounded-lg
+                text-slate-400
+                hover:text-white
+                hover:bg-slate-800
+                transition
+              "
+              aria-label="Close navigation"
             >
               <FaTimes />
             </button>
-
           </div>
-
         </div>
 
-        {/* Navigation */}
+        {/* ================= SECTION TITLE ================= */}
 
-        <nav className="flex flex-col gap-2">
+        <p
+          className="
+            px-3
+            mb-3
+            text-[11px]
+            font-semibold
+            uppercase
+            tracking-wider
+            text-slate-500
+          "
+        >
+          Workspace
+        </p>
 
+        {/* ================= NAVIGATION ================= */}
+
+        <nav className="flex flex-col gap-1.5">
           {menuItems.map((item) => {
-
             const Icon = item.icon;
-
-            const isActive =
-              location.pathname === item.path;
+            const isActive = location.pathname === item.path;
 
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={handleNavigation}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                className={`group relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   isActive
-                    ? "bg-blue-600 text-white shadow-lg"
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
                 }`}
               >
+                {/* Active Indicator */}
 
-                <Icon className="text-lg shrink-0" />
+                {isActive && (
+                  <span
+                    className="
+                      absolute
+                      left-0
+                      top-1/2
+                      -translate-y-1/2
+                      w-1
+                      h-7
+                      rounded-r-full
+                      bg-white
+                    "
+                  />
+                )}
 
-                <span className="font-medium">
+                {/* Icon */}
+
+                <Icon
+                  className="
+                    text-[17px]
+                    shrink-0
+                    transition-transform
+                    duration-200
+                    group-hover:scale-110
+                  "
+                />
+
+                {/* Menu Name */}
+
+                <span className="font-medium text-sm">
                   {item.name}
                 </span>
-
               </Link>
             );
           })}
-
         </nav>
 
-        {/* Bottom */}
+        {/* ================= BOTTOM ================= */}
 
-        <div className="mt-10 border-t border-slate-800 pt-5">
+        <div className="mt-10 pt-5 border-t border-slate-800">
+          <div
+            className="
+              p-3
+              rounded-xl
+              bg-slate-900
+              border border-slate-800
+            "
+          >
+            <p
+              className="
+                text-xs
+                font-medium
+                text-slate-400
+                text-center
+              "
+            >
+              AI Developer Career Assistant
+            </p>
 
-          <p className="text-xs text-slate-500 text-center">
-            AI Developer Career Assistant
-          </p>
-
-          <p className="text-xs text-slate-600 text-center mt-1">
-            v1.0 • 2026
-          </p>
-
+            <p
+              className="
+                text-[10px]
+                text-slate-600
+                text-center
+                mt-1
+              "
+            >
+              Version 1.0 • 2026
+            </p>
+          </div>
         </div>
-
       </aside>
     </>
   );

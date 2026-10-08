@@ -4,21 +4,25 @@ export default function ReportSection({
   children,
 }) {
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-8 mb-8">
+    <div className="w-full bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 md:p-8 mb-8">
 
-      <div className="flex items-center gap-3 mb-6">
+      {/* ================= HEADER ================= */}
 
-        <div className="text-3xl">
+      <div className="flex items-center gap-3 mb-8">
+
+        <div className="text-3xl shrink-0">
           {icon}
         </div>
 
-        <h2 className="text-2xl font-bold dark:text-white">
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
           {title}
         </h2>
 
       </div>
 
-      <div className="prose dark:prose-invert max-w-none">
+      {/* ================= REPORT CONTENT ================= */}
+
+      <div className="w-full max-w-none overflow-visible break-words">
         {children}
       </div>
 
